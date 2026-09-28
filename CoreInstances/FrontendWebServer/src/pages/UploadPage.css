@@ -1,0 +1,268 @@
+/**
+ * Upload Page Styles
+ */
+
+.upload-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+.upload-card {
+  background: var(--bg-surface);
+  padding: var(--space-8);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Drop Zone */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-input);
+  padding: var(--space-12) var(--space-8);
+  text-align: center;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  background: var(--bg-page);
+}
+
+.drop-zone--active {
+  border-color: var(--info);
+  background: var(--info-light);
+}
+
+.drop-zone--has-file {
+  border-style: solid;
+  border-color: var(--success);
+  background: var(--success-light);
+}
+
+.drop-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--space-4);
+  color: var(--ink-muted);
+}
+
+.drop-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.drop-zone--active .drop-icon {
+  color: var(--info);
+}
+
+.drop-text {
+  color: var(--ink-secondary);
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--font-body);
+}
+
+.drop-hint {
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+  margin: 0;
+}
+
+.browse-link {
+  color: var(--info);
+  cursor: pointer;
+  text-decoration: underline;
+  font-weight: var(--font-weight-medium);
+}
+
+.browse-link:hover {
+  color: var(--info-dark);
+}
+
+/* File Preview */
+.file-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  text-align: left;
+}
+
+.file-icon {
+  width: 48px;
+  height: 48px;
+  color: var(--success);
+  flex-shrink: 0;
+}
+
+.file-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  display: block;
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+  word-break: break-all;
+}
+
+.file-size {
+  display: block;
+  font-size: var(--font-small);
+  color: var(--ink-muted);
+  margin-top: var(--space-1);
+}
+
+.remove-file {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: var(--error-light);
+  color: var(--error);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: var(--space-2);
+}
+
+.remove-file svg {
+  width: 100%;
+  height: 100%;
+}
+
+.remove-file:hover {
+  background: var(--error-light);
+}
+
+/* Upload Button */
+.upload-button {
+  margin-top: var(--space-6);
+}
+
+/* Success Card */
+.success-card {
+  background: var(--bg-surface);
+  padding: var(--space-12);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.success-icon {
+  width: 72px;
+  height: 72px;
+  background: var(--success);
+  color: white;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-6);
+  padding: var(--space-4);
+}
+
+.success-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.success-card h2 {
+  margin: 0 0 var(--space-2) 0;
+}
+
+.success-card > p {
+  color: var(--ink-muted);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.success-details {
+  background: var(--bg-page);
+  padding: var(--space-4);
+  border-radius: var(--radius-input);
+  margin-bottom: var(--space-6);
+}
+
+.success-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--space-2) 0;
+}
+
+.success-detail-row:not(:last-child) {
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-label {
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+}
+
+.detail-value {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+}
+
+.success-actions {
+  display: flex;
+  gap: var(--space-4);
+  justify-content: center;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .upload-card {
+    padding: var(--space-6);
+  }
+
+  .drop-zone {
+    padding: var(--space-8) var(--space-4);
+  }
+
+  .drop-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .success-card {
+    padding: var(--space-6);
+  }
+
+  .success-icon {
+    width: 56px;
+    height: 56px;
+  }
+
+  .success-actions {
+    flex-direction: column;
+  }
+
+  .success-actions .btn {
+    width: 100%;
+  }
+
+  .file-preview {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-3);
+  }
+}
+
+.upload-target-banner {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2, rgba(255, 255, 255, 0.04));
+  border-left: 3px solid var(--color-accent, #4a90e2);
+  border-radius: 4px;
+  font-size: 0.95rem;
+}

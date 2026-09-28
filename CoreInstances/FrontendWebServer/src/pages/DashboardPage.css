@@ -1,0 +1,223 @@
+/**
+ * Dashboard Page Styles
+ */
+
+.dashboard-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: var(--space-6);
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-stats-error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.dashboard-stats-error .btn {
+  flex-shrink: 0;
+}
+
+.dashboard-stat-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+  min-height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.dashboard-stat-value {
+  width: 100%;
+  margin: 0;
+  color: var(--ink-primary);
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  text-align: center;
+}
+
+.dashboard-stat-label {
+  width: 100%;
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+  text-align: center;
+}
+
+.dashboard-stat-card--warning {
+  border-left: 4px solid var(--warning);
+}
+
+.dashboard-stat-card--error {
+  border-left: 4px solid var(--error);
+}
+
+.dashboard-stat-card--info {
+  border-left: 4px solid var(--info);
+}
+
+/* Section Title */
+.section-title {
+  font-size: var(--font-h3);
+  color: var(--ink-primary);
+  margin: var(--space-6) 0 var(--space-4) 0;
+}
+
+/* Tasks Card */
+.tasks-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-6);
+}
+
+.tasks-card h3 {
+  font-size: var(--font-h3);
+  margin: 0 0 var(--space-4) 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-page);
+  border-radius: var(--radius-input);
+  text-decoration: none;
+  color: var(--ink-secondary);
+  transition: all var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.task-item:hover {
+  background: var(--border);
+  transform: translateX(4px);
+}
+
+.task-item--urgent {
+  border-left-color: var(--error);
+  background: var(--error-light);
+}
+
+.task-item--urgent:hover {
+  filter: brightness(0.95);
+}
+
+.task-item--warning {
+  border-left-color: var(--warning);
+  background: var(--warning-light);
+}
+
+.task-item--warning:hover {
+  filter: brightness(0.95);
+}
+
+.task-item--info {
+  border-left-color: var(--info);
+  background: var(--info-light);
+}
+
+.task-item--info:hover {
+  filter: brightness(0.95);
+}
+
+.task-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  background: var(--ink-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-caption);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+}
+
+.task-item--urgent .task-icon {
+  background: var(--error);
+}
+
+.task-item--warning .task-icon {
+  background: var(--warning);
+}
+
+.task-item--info .task-icon {
+  background: var(--info);
+}
+
+.task-text {
+  font-size: var(--font-small);
+}
+
+.tasks-empty {
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+  text-align: center;
+  padding: var(--space-4);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-main {
+    padding: var(--space-4);
+  }
+
+  .tasks-card {
+    padding: var(--space-4);
+  }
+
+  .task-item {
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding: var(--space-3);
+  }
+
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .dashboard-stats-error {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,142 @@
+# ==========================================================================
+# Caddy TLS termination -- City of Laredo Certificate Management System
+#
+# TLS mode controlled by environment variables:
+#   TLS_CERT / TLS_KEY:
+#     - "internal" (default)  -> Caddy self-signs (dev/staging)
+#     - cert/key file paths   -> static city-issued certs
+#     - unset both + set real PUBLIC_HOSTNAME -> ACME auto-obtains
+#
+#   PUBLIC_HOSTNAME:
+#     - "localhost" (default) -> dev mode
+#     - real DNS name         -> production (enables ACME if no static cert)
+#
+#   FRONTEND_INTERNAL_PORT:
+#     - "80" (default)        -> nginx in production
+#     - "3000"                -> Vite dev server
+# ==========================================================================
+
+# --- Shared security headers (imported by all site blocks) ---
+(security_headers) {
+    header {
+        # HSTS: start conservative (5 min). Increase after validation.
+        # Do NOT add includeSubDomains without City IT approval --
+        # ci.laredo.tx.us has subdomains outside our control.
+        Strict-Transport-Security "max-age=300"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+        # CSP: dev-mode allows Vite HMR ('unsafe-inline' for styles, 'unsafe-eval' for
+        # React refresh runtime, ws: for HMR socket). Tighten in production by removing
+        # 'unsafe-eval' and 'unsafe-inline'.
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ws: wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        -Server
+    }
+}
+
+# ==========================================================================
+# Main application (frontend + API)
+# ==========================================================================
+
+{$PUBLIC_HOSTNAME:localhost} {
+
+    tls {$TLS_CERT:internal} {$TLS_KEY:}
+
+    import security_headers
+
+    # --- Caddy health endpoint (not proxied, used by Docker healthcheck) ---
+    respond /caddy-health 200 {
+        body "OK"
+    }
+
+    route {
+        # Operational and schema endpoints are intentionally unavailable on the
+        # employee-facing hostname. They remain reachable only inside the Docker
+        # network for monitoring and diagnostics.
+        @internal_api path /api/metrics /api/openapi.json /api/docs* /api/redoc*
+        respond @internal_api 404
+
+        # --- API routing ---
+    # handle_path strips the /api prefix before forwarding to FastAPI.
+    # Browser sends /api/api/employees -> strip /api/ -> FastAPI receives /api/employees
+    # Browser sends /api/auth/login    -> strip /api/ -> FastAPI receives /auth/login
+    #
+    # Cookie path rewriting (CRIT-04 coordination):
+    # FastAPI sets Set-Cookie with Path=/auth. But the browser sends refresh
+    # requests to /api/auth/refresh (the proxy-visible path). Without rewriting,
+    # the cookie Path doesn't match and the browser won't send it.
+    # header_down rewrites the Set-Cookie Path from /auth to /api/auth.
+        handle_path /api/* {
+            request_body {
+                max_size 21MB
+            }
+            reverse_proxy api:8000 {
+                header_down Set-Cookie "path=/auth" "path=/api/auth"
+            }
+        }
+
+        # --- Frontend (static SPA via nginx or Vite dev server) ---
+        handle {
+            reverse_proxy frontend:{$FRONTEND_INTERNAL_PORT:80}
+        }
+    }
+}
+
+# ==========================================================================
+# API docs (direct access to FastAPI Swagger/ReDoc)
+# ==========================================================================
+
+api.localhost {
+    tls internal {
+        client_auth {
+            mode require_and_verify
+            trust_pool file /etc/caddy/internal-ca.crt
+        }
+    }
+
+    import security_headers
+
+    reverse_proxy api:8000
+}
+
+# ==========================================================================
+# pgAdmin (database admin UI)
+# ==========================================================================
+
+pgadmin.localhost {
+    tls internal {
+        client_auth {
+            mode require_and_verify
+            trust_pool file /etc/caddy/internal-ca.crt
+        }
+    }
+
+    import security_headers
+
+    reverse_proxy pgadmin:80
+}
+
+# ==========================================================================
+# MinIO Console (storage admin UI)
+# ==========================================================================
+
+minio.localhost {
+    tls internal {
+        client_auth {
+            mode require_and_verify
+            trust_pool file /etc/caddy/internal-ca.crt
+        }
+    }
+
+    import security_headers
+
+    # MinIO serves HTTPS internally. Verify its service certificate against the
+    # project CA; never disable upstream verification.
+    reverse_proxy https://minio:9001 {
+        transport http {
+            tls_trust_pool file /etc/caddy/internal-ca.crt
+            tls_server_name minio
+        }
+    }
+}

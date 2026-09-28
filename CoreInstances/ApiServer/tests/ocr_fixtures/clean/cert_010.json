@@ -1,0 +1,13 @@
+{
+  "id": "cert_010",
+  "distortions": [],
+  "accuracy_threshold": 0.9,
+  "expected_fields": {
+    "certificate_holder_name": "Jennifer Lynn Davis",
+    "certificate_type": "Mental Health First Aid",
+    "issue_date": "2024-10-25",
+    "expiration_date": "2027-10-25",
+    "issuing_authority": "National Council for Mental Wellbeing",
+    "certificate_number": "NCMW-2024-334455"
+  }
+}

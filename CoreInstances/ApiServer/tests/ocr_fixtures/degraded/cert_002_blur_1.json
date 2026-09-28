@@ -1,0 +1,15 @@
+{
+  "id": "cert_002_blur_1",
+  "distortions": [
+    "blur_1"
+  ],
+  "accuracy_threshold": 0.8,
+  "expected_fields": {
+    "certificate_holder_name": "Maria Elena Garcia",
+    "certificate_type": "First Aid Certification",
+    "issue_date": "2024-02-20",
+    "expiration_date": "2026-02-20",
+    "issuing_authority": "American Red Cross",
+    "certificate_number": "ARC-2024-789012"
+  }
+}

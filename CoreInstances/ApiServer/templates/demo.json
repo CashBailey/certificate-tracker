@@ -1,0 +1,84 @@
+[
+  {
+    "template_id": "demo",
+    "version": 1,
+    "name": "demo",
+    "description": "",
+    "issuing_authority": null,
+    "certificate_type_ref": null,
+    "detection": {
+      "anchor_keywords": [],
+      "min_keyword_matches": 2,
+      "min_confidence_score": 0.7
+    },
+    "alignment": {
+      "reference_anchors": [],
+      "tolerance_bbox": 0.04,
+      "min_anchors_matched": 2
+    },
+    "zones": [
+      {
+        "field_name": "certificate_holder_name",
+        "bbox_norm": [
+          0.1464,
+          0.3982,
+          0.8005,
+          0.5013
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      },
+      {
+        "field_name": "certificate_type",
+        "bbox_norm": [
+          0.14563780870068255,
+          0.6233684369580308,
+          0.5559459780440199,
+          0.7110510729457584
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      },
+      {
+        "field_name": "issue_date",
+        "bbox_norm": [
+          0.6355,
+          0.7525,
+          0.8414,
+          0.8391
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      },
+      {
+        "field_name": "issuing_authority",
+        "bbox_norm": [
+          0.6875,
+          0.1292,
+          0.8748,
+          0.3662
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      }
+    ],
+    "review_rules": {
+      "always_review_fields": [],
+      "skip_generic_if_zone_confident": true
+    },
+    "created_at": "2026-05-05T20:16:42.289Z",
+    "updated_at": "2026-05-05T20:16:42.289Z"
+  }
+]

@@ -1,0 +1,255 @@
+/**
+ * Requirements Page Styles
+ */
+
+.requirements-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+/* ============================================
+   Status Legend
+   ============================================ */
+
+.status-legend {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-4);
+  max-width: 100%;
+}
+
+.legend-title {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-secondary);
+  font-size: var(--font-small);
+  margin-bottom: var(--space-3);
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-small);
+  color: var(--ink-secondary);
+}
+
+.legend-item--link {
+  margin-left: auto;
+}
+
+.compliance-link {
+  font-size: var(--font-small);
+  color: var(--info);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.compliance-link:hover {
+  text-decoration: underline;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.legend-dot--overdue  { background: var(--error); }
+.legend-dot--due-soon { background: var(--warning); }
+.legend-dot--on-track { background: var(--info); }
+.legend-dot--satisfied { background: var(--success); }
+.legend-dot--waived   { background: var(--purple); }
+
+/* ============================================
+   Requirements Table
+   ============================================ */
+
+.requirements-table-container {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.requirements-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.requirements-table th,
+.requirements-table td {
+  padding: var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.requirements-table th {
+  background: var(--bg-page);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-secondary);
+  font-size: var(--font-small);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.requirements-table tbody tr:hover {
+  background: var(--bg-page);
+}
+
+.requirements-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Cell Styles */
+.cell-employee {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.cell-type {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+}
+
+.cell-date  { color: var(--ink-secondary); white-space: nowrap; }
+.cell-days  { white-space: nowrap; }
+.cell-status { white-space: nowrap; }
+.cell-actions { white-space: nowrap; }
+
+/* Days Badge */
+.days-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-caption);
+  font-weight: var(--font-weight-medium);
+}
+
+.days-badge--overdue {
+  background: var(--error-light);
+  color: var(--error-dark);
+}
+
+.days-badge--soon {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.days-badge--ok {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+/* ============================================
+   Pagination
+   ============================================ */
+
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-card) var(--radius-card);
+  max-width: 100%;
+  gap: var(--space-3);
+}
+
+.pagination-info {
+  font-size: var(--font-small);
+  color: var(--ink-secondary);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.pagination-page {
+  font-size: var(--font-small);
+  color: var(--ink-primary);
+  padding: 0 var(--space-2);
+  white-space: nowrap;
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .requirements-table-container {
+    overflow-x: auto;
+  }
+
+  .requirements-table th,
+  .requirements-table td {
+    padding: var(--space-3);
+  }
+}
+
+@media (max-width: 768px) {
+  .legend-items {
+    gap: var(--space-3);
+  }
+
+  .legend-item {
+    font-size: var(--font-caption);
+  }
+
+  .legend-item--link {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .requirements-table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 480px) {
+  .requirements-page .filter-bar > * {
+    min-width: 0;
+  }
+
+  .status-legend {
+    padding: var(--space-3);
+  }
+
+  .legend-items {
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+
+  .pagination-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-info {
+    text-align: center;
+  }
+
+  .pagination-controls {
+    justify-content: space-between;
+  }
+}

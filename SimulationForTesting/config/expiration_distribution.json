@@ -1,0 +1,79 @@
+{
+  "monthly_distribution": {
+    "january": {
+      "percentage": 10,
+      "notes": "Post-holiday catch-up period"
+    },
+    "february": {
+      "percentage": 7,
+      "notes": "Regular month"
+    },
+    "march": {
+      "percentage": 8,
+      "notes": "End of Q1"
+    },
+    "april": {
+      "percentage": 7,
+      "notes": "Regular month"
+    },
+    "may": {
+      "percentage": 8,
+      "notes": "Pre-summer"
+    },
+    "june": {
+      "percentage": 12,
+      "notes": "Mid-year, fiscal year end for many orgs"
+    },
+    "july": {
+      "percentage": 8,
+      "notes": "New fiscal year"
+    },
+    "august": {
+      "percentage": 7,
+      "notes": "Summer slowdown"
+    },
+    "september": {
+      "percentage": 10,
+      "notes": "Back from summer, renewal push"
+    },
+    "october": {
+      "percentage": 8,
+      "notes": "Q4 begins"
+    },
+    "november": {
+      "percentage": 7,
+      "notes": "Pre-holiday"
+    },
+    "december": {
+      "percentage": 8,
+      "notes": "Year-end compliance push"
+    }
+  },
+  "day_of_month_distribution": {
+    "description": "Most expirations cluster around common dates",
+    "patterns": {
+      "first_of_month": {
+        "days": [1],
+        "percentage": 15
+      },
+      "fifteenth": {
+        "days": [15],
+        "percentage": 10
+      },
+      "end_of_month": {
+        "days": [28, 29, 30, 31],
+        "percentage": 20
+      },
+      "random": {
+        "days": "any",
+        "percentage": 55
+      }
+    }
+  },
+  "reference_date": "2026-02-04",
+  "simulation_date_range": {
+    "start": "2021-01-01",
+    "end": "2026-12-31",
+    "notes": "5+ years of historical data for renewal chains"
+  }
+}

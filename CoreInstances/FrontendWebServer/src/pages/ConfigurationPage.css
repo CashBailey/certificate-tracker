@@ -1,0 +1,51 @@
+/**
+ * Configuration Page Styles — tab bar and content container.
+ */
+
+.configuration-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+.config-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: var(--space-6);
+}
+
+.config-tab {
+  padding: var(--space-3) var(--space-5);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-muted);
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.config-tab:hover {
+  color: var(--ink-primary);
+}
+
+.config-tab--active {
+  color: var(--ink-primary);
+  border-bottom-color: var(--accent);
+  font-weight: var(--font-weight-bold);
+}
+
+.config-tab-content {
+  flex: 1;
+}
+
+@media (max-width: 480px) {
+  .config-tab {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-small);
+  }
+}

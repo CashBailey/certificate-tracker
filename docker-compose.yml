@@ -1,0 +1,595 @@
+# ==============================================================================
+# City of Laredo Certificate Management System - Development Docker Compose
+# ==============================================================================
+
+name: laredo
+
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+services:
+  # ============================================================================
+  # Infrastructure Services
+  # ============================================================================
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: laredo-postgres
+    entrypoint: ["/postgres-entrypoint.sh"]
+    command:
+      - postgres
+      - -c
+      - ssl=on
+      - -c
+      - ssl_cert_file=/var/lib/postgresql/tls/server.crt
+      - -c
+      - ssl_key_file=/var/lib/postgresql/tls/server.key
+      - -c
+      - ssl_ca_file=/var/lib/postgresql/tls/ca.crt
+      - -c
+      - hba_file=/etc/postgresql/pg_hba.conf
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-laredo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-laredo_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-laredo_certificates}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/database/init:/docker-entrypoint-initdb.d:ro
+      - ./docker/postgres/entrypoint.sh:/postgres-entrypoint.sh:ro
+      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ./docker/tls/certs/postgres:/tls-source:ro
+    networks:
+      - laredo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-laredo} -d ${POSTGRES_DB:-laredo_certificates}"]
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: laredo-redis
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --tls-port 6380
+      --port 0
+      --tls-cert-file /tls/server.crt
+      --tls-key-file /tls/server.key
+      --tls-ca-cert-file /tls/ca.crt
+      --tls-auth-clients yes
+    volumes:
+      - redis_data:/data
+      - ./docker/tls/certs/redis:/tls:ro
+    networks:
+      - laredo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "redis-cli --tls --cert /tls/client.crt --key /tls/client.key --cacert /tls/ca.crt -p 6380 ping"]
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: laredo-minio
+    command: server /data --console-address ":9001" --certs-dir /certs
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
+      # Encryption at rest configuration (SSE-S3)
+      MINIO_KMS_AUTO_ENCRYPTION: ${MINIO_KMS_AUTO_ENCRYPTION:-on}
+      MINIO_KMS_SECRET_KEY: "laredo-key:${MINIO_ENCRYPTION_KEY:?MINIO_ENCRYPTION_KEY is required}"
+      # TLS: MinIO auto-enables HTTPS when certs are present in MINIO_CERTS_DIR
+      MINIO_CERTS_DIR: /certs
+      # Console redirect for Caddy reverse proxy
+      MINIO_BROWSER_REDIRECT_URL: https://minio.localhost
+      MINIO_SERVER_URL: https://minio:9000
+    volumes:
+      - minio_data:/data
+      - ./docker/tls/certs/minio:/certs:ro
+      - ./docker/tls/ca.crt:/tmp/.mc/certs/CAs/laredo-ca.crt:ro
+    networks:
+      - laredo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "mc alias set hc https://localhost:9000 $$MINIO_ROOT_USER $$MINIO_ROOT_PASSWORD >/dev/null 2>&1 && mc ready hc"]
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: laredo-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
+      MINIO_API_SECRET_KEY: ${MINIO_API_SECRET_KEY}
+      MINIO_EXTRACTION_SECRET_KEY: ${MINIO_EXTRACTION_SECRET_KEY}
+      MINIO_EMAIL_INTAKE_SECRET_KEY: ${MINIO_EMAIL_INTAKE_SECRET_KEY}
+    volumes:
+      - ./docker/minio/policies:/policies:ro
+      - ./docker/tls/ca.crt:/root/.mc/certs/CAs/laredo-ca.crt:ro
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio https://minio:9000 $${MINIO_ROOT_USER} $${MINIO_ROOT_PASSWORD};
+
+      mc mb myminio/documents     --ignore-existing;
+
+      echo 'Enabling server-side encryption on buckets...';
+      mc encrypt set sse-s3 myminio/documents     || echo 'Encryption already enabled on documents';
+
+      echo 'Creating IAM policies...';
+      mc admin policy create myminio policy-api            /policies/api-policy.json          || echo 'policy-api already exists';
+      mc admin policy create myminio policy-extraction     /policies/extraction-worker-policy.json || echo 'policy-extraction already exists';
+      mc admin policy create myminio policy-email-intake   /policies/email-intake-worker-policy.json || echo 'policy-email-intake already exists';
+
+      echo 'Creating service account users...';
+      mc admin user add myminio laredo-api               $${MINIO_API_SECRET_KEY}              || echo 'user laredo-api already exists';
+      mc admin user add myminio laredo-extraction-worker  $${MINIO_EXTRACTION_SECRET_KEY}       || echo 'user laredo-extraction-worker already exists';
+      mc admin user add myminio laredo-email-intake       $${MINIO_EMAIL_INTAKE_SECRET_KEY}     || echo 'user laredo-email-intake already exists';
+
+      echo 'Attaching policies to users...';
+      mc admin policy attach myminio policy-api          --user laredo-api              || echo 'policy-api already attached';
+      mc admin policy attach myminio policy-extraction   --user laredo-extraction-worker || echo 'policy-extraction already attached';
+      mc admin policy attach myminio policy-email-intake --user laredo-email-intake     || echo 'policy-email-intake already attached';
+
+      echo 'MinIO initialization complete';
+      exit 0;
+      "
+    networks:
+      - laredo-network
+
+  # ============================================================================
+  # Core Application Services
+  # ============================================================================
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api/Dockerfile.dev
+    container_name: laredo-api
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - WATCHFILES_FORCE_POLLING=true
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-laredo}:${POSTGRES_PASSWORD:-laredo_dev_password}@postgres:5432/${POSTGRES_DB:-laredo_certificates}
+      - REDIS_URL=rediss://redis:6380/0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=laredo-api
+      - MINIO_SECRET_KEY=${MINIO_API_SECRET_KEY}
+      - MINIO_SECURE=true
+      - TLS_ENABLED=true
+      - TLS_CA_CERT=/tls/ca.crt
+      - TLS_CLIENT_CERT=/tls/client.crt
+      - TLS_CLIENT_KEY=/tls/client.key
+      - DEBUG=${DEBUG:-false}
+      - SECRET_KEY=${SECRET_KEY:?Set SECRET_KEY in .env}
+      - FRONTEND_URL=https://${PUBLIC_HOSTNAME:-localhost}
+      - SMTP_HOST=${SMTP_HOST:-greenmail}
+      - SMTP_PORT=${SMTP_PORT:-3025}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - NOTIFICATION_FROM_EMAIL=${NOTIFICATION_FROM_EMAIL:-noreply@ci.laredo.tx.us}
+    volumes:
+      - ./CoreInstances/ApiServer:/app
+      - api_cache:/root/.cache
+      - ./SimulationForTesting:/data/SimulationForTesting:ro
+      - ./scripts:/data/scripts:ro
+      - ./docker/tls/certs/api-client:/tls:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - laredo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile.dev
+    container_name: laredo-frontend
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=/api
+      - VITE_API_PROXY_TARGET=http://api:8000
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./CoreInstances/FrontendWebServer:/app
+      - /app/node_modules
+      - frontend_cache:/app/.vite
+    depends_on:
+      - api
+    networks:
+      - laredo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000"]
+    restart: unless-stopped
+
+  # ============================================================================
+  # AI / LLM Services
+  # ============================================================================
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: laredo-ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+      - OLLAMA_MAX_LOADED_MODELS=2
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - laredo-network
+    restart: unless-stopped
+
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: laredo-ollama-init
+    entrypoint: >
+      /bin/sh -c "
+      sleep 10;
+      OLLAMA_HOST=http://ollama:11434 ollama pull sroecker/nuextract-tiny-v1.5;
+      OLLAMA_HOST=http://ollama:11434 ollama pull llama3.2:3b;
+      echo 'Warming models into VRAM...';
+      OLLAMA_HOST=http://ollama:11434 ollama run llama3.2:3b '' --keepalive -1 2>/dev/null || true;
+      OLLAMA_HOST=http://ollama:11434 ollama run sroecker/nuextract-tiny-v1.5 '' --keepalive -1 2>/dev/null || true;
+      echo 'Models pulled and loaded into VRAM';
+      "
+    depends_on:
+      - ollama
+    networks:
+      - laredo-network
+
+  # ============================================================================
+  # Background Workers
+  # ============================================================================
+
+  extraction-worker:
+    build:
+      context: .
+      dockerfile: docker/workers/extraction/Dockerfile
+    container_name: laredo-extraction-worker
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://laredo_extraction_worker:${EXTRACTION_WORKER_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-laredo_certificates}
+      - REDIS_URL=rediss://redis:6380/0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=laredo-extraction-worker
+      - MINIO_SECRET_KEY=${MINIO_EXTRACTION_SECRET_KEY}
+      - MINIO_SECURE=true
+      - TLS_ENABLED=true
+      - TLS_CA_CERT=/tls/ca.crt
+      - TLS_CLIENT_CERT=/tls/client.crt
+      - TLS_CLIENT_KEY=/tls/client.key
+      - LOG_LEVEL=INFO
+      - TEMPLATES_DIR=/app/templates
+      - OLLAMA_URL=http://ollama:11434
+      - LLM_MODEL=${LLM_MODEL:-llama3.2:3b}
+      - LLM_CONSENSUS_N=${LLM_CONSENSUS_N:-3}
+      - LLM_CONSENSUS_ENABLED=${LLM_CONSENSUS_ENABLED:-true}
+      - LLM_CONSENSUS_TEMP=${LLM_CONSENSUS_TEMP:-0.3}
+      - SMTP_HOST=${SMTP_HOST:-greenmail}
+      - SMTP_PORT=${SMTP_PORT:-3025}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - NOTIFICATION_FROM_EMAIL=${NOTIFICATION_FROM_EMAIL:-noreply@ci.laredo.tx.us}
+    volumes:
+      - ./BackgroundProcessingInstances/ExtractionWorker/src:/app/src
+      - ./CoreInstances/ApiServer/src/shared:/app/shared
+      - ./CoreInstances/ApiServer/templates:/app/templates
+      - worker_temp:/tmp/worker
+      - ./docker/tls/certs/extraction-worker-client:/tls:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - laredo-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  ocr-engine:
+    build:
+      context: .
+      dockerfile: docker/workers/ocr/Dockerfile
+    container_name: laredo-ocr-engine
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_URL=rediss://redis:6380/0
+      - TLS_ENABLED=true
+      - TLS_CA_CERT=/tls/ca.crt
+      - TLS_CLIENT_CERT=/tls/client.crt
+      - TLS_CLIENT_KEY=/tls/client.key
+      - TESSERACT_LANG=${TESSERACT_LANG:-eng+spa}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./BackgroundProcessingInstances/OcrEngine/src:/app/src
+      - ./CoreInstances/ApiServer/src/shared:/app/shared
+      - ./docker/tls/certs/ocr-worker-client:/tls:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - laredo-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+
+  scheduler-worker:
+    build:
+      context: .
+      dockerfile: docker/workers/scheduler/Dockerfile
+    container_name: laredo-scheduler-worker
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://laredo_scheduler_worker:${SCHEDULER_WORKER_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-laredo_certificates}
+      - REDIS_URL=rediss://redis:6380/0
+      - TLS_ENABLED=true
+      - TLS_CA_CERT=/tls/ca.crt
+      - TLS_CLIENT_CERT=/tls/client.crt
+      - TLS_CLIENT_KEY=/tls/client.key
+      - SMTP_HOST=${SMTP_HOST:-greenmail}
+      - SMTP_PORT=${SMTP_PORT:-3025}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - NOTIFICATION_FROM_EMAIL=${NOTIFICATION_FROM_EMAIL:-noreply@ci.laredo.tx.us}
+      - TZ=America/Chicago
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./BackgroundProcessingInstances/SchedulerNotificationWorker/src:/app/src
+      - ./CoreInstances/ApiServer/src/shared:/app/shared
+      - ./docker/tls/certs/scheduler-worker-client:/tls:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - laredo-network
+    restart: unless-stopped
+
+  email-intake-worker:
+    build:
+      context: .
+      dockerfile: docker/workers/email-intake/Dockerfile
+    container_name: laredo-email-intake-worker
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=postgresql://laredo_email_intake_worker:${EMAIL_INTAKE_WORKER_DB_PASSWORD}@postgres:5432/${POSTGRES_DB:-laredo_certificates}
+      - REDIS_URL=rediss://redis:6380/0
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=laredo-email-intake
+      - MINIO_SECRET_KEY=${MINIO_EMAIL_INTAKE_SECRET_KEY}
+      - MINIO_SECURE=true
+      - TLS_ENABLED=true
+      - TLS_CA_CERT=/tls/ca.crt
+      - TLS_CLIENT_CERT=/tls/client.crt
+      - TLS_CLIENT_KEY=/tls/client.key
+      - MINIO_BUCKET=documents
+      - IMAP_HOST=${IMAP_HOST:-greenmail}
+      - IMAP_PORT=${IMAP_PORT:-3143}
+      - IMAP_USER=${IMAP_USER:-}
+      - IMAP_PASSWORD=${IMAP_PASSWORD:-}
+      - IMAP_USE_SSL=${IMAP_USE_SSL:-false}
+      - IMAP_INBOX_FOLDER=${IMAP_INBOX_FOLDER:-INBOX}
+      - IMAP_PROCESSED_FOLDER=${IMAP_PROCESSED_FOLDER:-Processed}
+      - ALLOWED_EMAIL_DOMAIN=${ALLOWED_EMAIL_DOMAIN:-ci.laredo.tx.us}
+      - EMAIL_POLL_INTERVAL_SECONDS=${EMAIL_POLL_INTERVAL_SECONDS:-60}
+      - LOG_LEVEL=INFO
+      # ClamAV malware scanning configuration
+      - CLAMAV_ENABLED=${CLAMAV_ENABLED:-true}
+      - CLAMAV_HOST=${CLAMAV_HOST:-clamav}
+      - CLAMAV_PORT=${CLAMAV_PORT:-3310}
+      - CLAMAV_TIMEOUT=${CLAMAV_TIMEOUT:-30}
+      - CLAMAV_FAIL_OPEN=${CLAMAV_FAIL_OPEN:-false}
+    volumes:
+      - ./BackgroundProcessingInstances/EmailIntakeWorker/src:/app/src
+      - ./CoreInstances/ApiServer/src/shared:/app/shared
+      - ./docker/tls/certs/email-intake-worker-client:/tls:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - laredo-network
+    restart: unless-stopped
+    profiles:
+      - email-intake
+
+  # ============================================================================
+  # Security Services
+  # ============================================================================
+
+  clamav:
+    image: clamav/clamav:1.0
+    container_name: laredo-clamav
+    volumes:
+      - clamav_data:/var/lib/clamav
+    networks:
+      - laredo-network
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/clamdcheck.sh"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: laredo-caddy
+    environment:
+      - PUBLIC_HOSTNAME=${PUBLIC_HOSTNAME:-localhost}
+      - FRONTEND_INTERNAL_PORT=${FRONTEND_INTERNAL_PORT:-3000}
+      - TLS_CERT=${TLS_CERT:-internal}
+      - TLS_KEY=${TLS_KEY:-}
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./docker/tls/ca.crt:/etc/caddy/internal-ca.crt:ro
+      - caddy_data:/data       # ACME cert storage -- MUST persist
+      - caddy_config:/config   # Caddy runtime config
+      # For static_cert mode, uncomment:
+      # - ./docker/tls/certs/caddy:/etc/caddy/certs:ro
+    ports:
+      - "${CADDY_HTTPS_PORT:-443}:443"
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    networks:
+      - laredo-network
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "wget", "-q", "--spider", "--no-check-certificate", "https://localhost/caddy-health"]
+    restart: unless-stopped
+
+  # ============================================================================
+  # Development Tools (Optional - use with --profile dev-tools)
+  # ============================================================================
+
+  # WARNING: Greenmail is a development-only mail server.
+  # Authentication is intentionally DISABLED (-Dgreenmail.auth.disabled).
+  # Any username and password combination will be accepted without verification.
+  # This service MUST NOT be used in staging or production environments.
+  # NEVER configure real employee credentials or production email accounts
+  # to connect to this server.
+  greenmail:
+    image: greenmail/standalone:2.1.8
+    container_name: laredo-greenmail
+    environment:
+      - GREENMAIL_OPTS=-Dgreenmail.setup.test.all -Dgreenmail.hostname=0.0.0.0 -Dgreenmail.auth.disabled  # DEV ONLY: auth disabled
+      - JAVA_OPTS=-Djava.net.preferIPv4Stack=true -Xmx256m
+    ports:
+      - "${GREENMAIL_BIND_HOST:-127.0.0.1}:${GREENMAIL_SMTP_PORT:-3025}:3025"
+      - "${GREENMAIL_BIND_HOST:-127.0.0.1}:${GREENMAIL_IMAP_PORT:-3143}:3143"
+      - "${GREENMAIL_BIND_HOST:-127.0.0.1}:${GREENMAIL_API_PORT:-8080}:8080"
+    networks:
+      - laredo-network
+    profiles:
+      - dev-tools
+      - email-intake
+
+  roundcube:
+    image: roundcube/roundcubemail:1.6.9-apache
+    container_name: laredo-roundcube
+    environment:
+      ROUNDCUBEMAIL_DEFAULT_HOST: ${ROUNDCUBE_IMAP_HOST:-greenmail}
+      ROUNDCUBEMAIL_DEFAULT_PORT: "${ROUNDCUBE_IMAP_PORT:-3143}"
+      ROUNDCUBEMAIL_SMTP_SERVER: ${ROUNDCUBE_SMTP_HOST:-greenmail}
+      ROUNDCUBEMAIL_SMTP_PORT: "${ROUNDCUBE_SMTP_PORT:-3025}"
+      ROUNDCUBEMAIL_UPLOAD_MAX_FILESIZE: 25M
+      ROUNDCUBEMAIL_SKIN: elastic
+      ROUNDCUBEMAIL_DB_TYPE: pgsql
+      ROUNDCUBEMAIL_DB_HOST: postgres
+      ROUNDCUBEMAIL_DB_PORT: "5432"
+      ROUNDCUBEMAIL_DB_USER: ${POSTGRES_USER:-laredo}
+      ROUNDCUBEMAIL_DB_PASSWORD: ${POSTGRES_PASSWORD:-laredo_dev_password}
+      ROUNDCUBEMAIL_DB_NAME: roundcube
+      CITY_DIRECTORY_DSN: ${CITY_DIRECTORY_DSN:-pgsql://laredo:${POSTGRES_PASSWORD:-laredo_dev_password}@postgres:5432/laredo_certificates}
+      # TLS verification for custom.inc.php (default: false for GreenMail dev)
+      ROUNDCUBE_IMAP_VERIFY_PEER: "${ROUNDCUBE_IMAP_VERIFY_PEER:-false}"
+      ROUNDCUBE_IMAP_VERIFY_PEER_NAME: "${ROUNDCUBE_IMAP_VERIFY_PEER_NAME:-false}"
+      ROUNDCUBE_SMTP_VERIFY_PEER: "${ROUNDCUBE_SMTP_VERIFY_PEER:-false}"
+      ROUNDCUBE_SMTP_VERIFY_PEER_NAME: "${ROUNDCUBE_SMTP_VERIFY_PEER_NAME:-false}"
+      ROUNDCUBE_SMTP_AUTH_TYPE: "${ROUNDCUBE_SMTP_AUTH_TYPE:-}"
+      ROUNDCUBE_SMTP_USER: "${ROUNDCUBE_SMTP_USER:-}"
+      ROUNDCUBE_SMTP_PASS: "${ROUNDCUBE_SMTP_PASS:-}"
+    volumes:
+      - ./docker/roundcube/custom.inc.php:/var/roundcube/config/custom.inc.php:ro
+      - ./docker/roundcube/plugins/city_directory:/var/www/html/plugins/city_directory:ro
+    ports:
+      - "${ROUNDCUBE_BIND_HOST:-127.0.0.1}:${ROUNDCUBE_PORT:-9090}:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      greenmail:
+        condition: service_started
+    networks:
+      - laredo-network
+    profiles:
+      - dev-tools
+      - email-intake
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: laredo-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@ci.laredo.tx.us}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?Set PGADMIN_PASSWORD in .env}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_PROXY_X_HOST_COUNT: "1"
+      PGADMIN_CONFIG_PROXY_X_PREFIX_COUNT: "0"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - laredo-network
+    profiles:
+      - dev-tools
+
+# ==============================================================================
+# Networks
+# ==============================================================================
+
+networks:
+  laredo-network:
+    name: laredo-network
+    external: true
+
+# ==============================================================================
+# Volumes
+# ==============================================================================
+
+volumes:
+  postgres_data:
+    name: laredo-postgres-data
+  minio_data:
+    name: laredo-minio-data
+  redis_data:
+    name: laredo-redis-data
+  api_cache:
+    name: laredo-api-cache
+  frontend_cache:
+    name: laredo-frontend-cache
+  worker_temp:
+    name: laredo-worker-temp
+  pgadmin_data:
+    name: laredo-pgadmin-data
+  ollama_data:
+    name: laredo-ollama-data
+  clamav_data:
+    name: laredo-clamav-data
+  caddy_data:
+    name: laredo-caddy-data
+  caddy_config:
+    name: laredo-caddy-config

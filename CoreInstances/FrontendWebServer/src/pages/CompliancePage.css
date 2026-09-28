@@ -1,0 +1,269 @@
+/**
+ * Compliance Page Styles
+ */
+
+.compliance-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+/* ============================================
+   Actions bar
+   ============================================ */
+
+.compliance-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-6);
+}
+
+/* ============================================
+   Summary Grid
+   ============================================ */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.summary-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.summary-card--highlight {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  color: white;
+}
+
+.summary-value {
+  font-size: 2.5rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  margin-bottom: var(--space-2);
+  color: var(--ink-primary);
+}
+
+.summary-card--highlight .summary-value {
+  font-size: 3rem;
+  color: white;
+}
+
+.summary-label {
+  font-size: var(--font-small);
+  color: var(--ink-muted);
+}
+
+.summary-card--highlight .summary-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* ============================================
+   Status Breakdown
+   ============================================ */
+
+.status-breakdown,
+.by-type-section {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-6);
+}
+
+.status-breakdown h2,
+.by-type-section h2 {
+  font-size: var(--font-h2);
+  margin: 0 0 var(--space-6) 0;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-6);
+}
+
+.status-card {
+  padding: var(--space-4);
+  border-radius: var(--radius-input);
+  background: var(--bg-page);
+}
+
+.status-card--compliant {
+  border-left: 4px solid var(--success);
+}
+
+.status-card--due-soon {
+  border-left: 4px solid var(--warning);
+}
+
+.status-card--overdue {
+  border-left: 4px solid var(--error);
+}
+
+.status-card--waived {
+  border-left: 4px solid var(--purple);
+}
+
+.status-count {
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--ink-primary);
+  line-height: 1;
+}
+
+.status-label {
+  font-size: var(--font-small);
+  color: var(--ink-muted);
+  margin: var(--space-1) 0 var(--space-3) 0;
+}
+
+.status-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.status-bar__fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width var(--transition-slow);
+}
+
+.status-card--compliant .status-bar__fill {
+  background: var(--success);
+}
+
+.status-card--due-soon .status-bar__fill {
+  background: var(--warning);
+}
+
+.status-card--overdue .status-bar__fill {
+  background: var(--error);
+}
+
+.status-card--waived .status-bar__fill {
+  background: var(--purple);
+}
+
+/* ============================================
+   By Certificate Type Table
+   ============================================ */
+
+.type-table-container {
+  overflow-x: auto;
+}
+
+.type-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.type-table th,
+.type-table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.type-table th {
+  background: var(--bg-page);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-secondary);
+  font-size: var(--font-small);
+  white-space: nowrap;
+}
+
+.type-table tbody tr:hover {
+  background: var(--bg-page);
+}
+
+.type-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.type-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+}
+
+.rate-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-small);
+}
+
+.rate--high {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+.rate--medium {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.rate--low {
+  background: var(--error-light);
+  color: var(--error-dark);
+}
+
+.rate--none {
+  background: var(--border);
+  color: var(--ink-muted);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .status-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .summary-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .status-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
+
+  .status-breakdown,
+  .by-type-section {
+    padding: var(--space-4);
+  }
+
+  .type-table {
+    min-width: 600px;
+  }
+}
+
+@media (max-width: 480px) {
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-value {
+    font-size: 2rem;
+  }
+
+  .summary-card--highlight .summary-value {
+    font-size: 2.5rem;
+  }
+}

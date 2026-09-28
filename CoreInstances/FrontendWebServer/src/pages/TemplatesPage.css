@@ -1,0 +1,224 @@
+/**
+ * Templates Page Styles
+ */
+
+.templates-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+/* Registry Info */
+.registry-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-surface);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.registry-hash {
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+}
+
+.registry-hash code {
+  background: var(--bg-page);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-caption);
+}
+
+.registry-info__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.template-count {
+  color: var(--ink-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Templates List */
+.templates-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.template-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.template-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-5);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.template-header:hover {
+  background: var(--bg-page);
+}
+
+.template-title h3 {
+  margin: 0;
+  color: var(--ink-primary);
+  font-size: var(--font-h3);
+}
+
+.template-id {
+  display: block;
+  color: var(--ink-muted);
+  font-size: var(--font-caption);
+  font-family: ui-monospace, monospace;
+  margin-top: var(--space-1);
+}
+
+.template-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.version-badge {
+  background: var(--info-light);
+  color: var(--info-dark);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-caption);
+  font-weight: var(--font-weight-semibold);
+}
+
+.expand-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-page);
+  border-radius: var(--radius-sm);
+  color: var(--ink-muted);
+}
+
+.expand-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Template Details */
+.template-details {
+  padding: 0 var(--space-5) var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.template-description {
+  color: var(--ink-secondary);
+  margin: var(--space-4) 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.template-section {
+  margin: var(--space-6) 0;
+}
+
+.template-section h4 {
+  color: var(--ink-secondary);
+  font-size: var(--font-small);
+  margin: 0 0 var(--space-3) 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.zones-table-container {
+  overflow-x: auto;
+}
+
+.zones-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-small);
+}
+
+.zones-table th,
+.zones-table td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.zones-table th {
+  background: var(--bg-page);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-secondary);
+}
+
+.zones-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.zones-table code {
+  background: var(--bg-page);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-caption);
+}
+
+.bbox-cell {
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-caption);
+}
+
+.template-timestamps {
+  display: flex;
+  gap: var(--space-8);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+  color: var(--ink-muted);
+  font-size: var(--font-caption);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .registry-info {
+    flex-direction: column;
+    gap: var(--space-2);
+    text-align: center;
+    padding: var(--space-3);
+  }
+
+  .template-header {
+    padding: var(--space-4);
+  }
+
+  .template-details {
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .template-timestamps {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .template-meta {
+    gap: var(--space-2);
+  }
+
+  .zones-table {
+    min-width: 400px;
+  }
+}

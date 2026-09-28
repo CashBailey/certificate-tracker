@@ -1,0 +1,13 @@
+{
+  "id": "cert_005",
+  "distortions": [],
+  "accuracy_threshold": 0.9,
+  "expected_fields": {
+    "certificate_holder_name": "William Thomas Johnson",
+    "certificate_type": "Food Handler Certification",
+    "issue_date": "2024-05-12",
+    "expiration_date": "2026-05-12",
+    "issuing_authority": "Texas Department of State Health Services",
+    "certificate_number": "DSHS-2024-567890"
+  }
+}

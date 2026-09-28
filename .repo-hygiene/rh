@@ -1,0 +1,898 @@
+#!/usr/bin/env sh
+# RH_MANAGED_FILE: repo-hygiene-autopilot v1
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+# shellcheck disable=SC1091
+. "$SCRIPT_DIR/lib/common.sh"
+
+RH_CONFIG_PATH_DEFAULT="$SCRIPT_DIR/config/rh.conf"
+rh_load_config "${RH_CONFIG_PATH:-$RH_CONFIG_PATH_DEFAULT}"
+
+rh_usage() {
+  cat <<'USAGE'
+Repo Hygiene (rh)
+
+Usage:
+  rh doctor
+  rh start <task> [--stash] [--worktree|--no-worktree]
+  rh precommit
+  rh finish [--mode merge|pr|wip|stash] [--yes]
+  rh cleanup [--local] [--remote] [--merged-only] [--dry-run] [--no-dry-run] [--yes]
+  rh recover
+
+Notes:
+  - Destructive operations are dry-run by default and require --yes.
+  - `rh doctor` returns bit-flag exit codes for machine parsing.
+USAGE
+}
+
+rh_cmd_doctor() {
+  if [ "$#" -gt 0 ]; then
+    case "$1" in
+      -h|--help)
+        rh_usage
+        return 0
+        ;;
+      *)
+        rh_die "Unknown argument for doctor: $1"
+        ;;
+    esac
+  fi
+
+  if ! rh_require_git_repo; then
+    rh_err "Not inside a Git repository."
+    rh_log "DOCTOR_EXIT_CODE=$RH_RC_NOT_REPO"
+    exit "$RH_RC_NOT_REPO"
+  fi
+
+  rc=0
+  repo_root=$(rh_repo_root)
+  default_branch=$(rh_detect_default_branch || true)
+  current_branch=$(rh_current_branch)
+  primary_remote=$(rh_primary_remote || true)
+
+  rh_log "Repo root: $repo_root"
+  if [ -n "$primary_remote" ]; then
+    rh_log "Primary remote: $primary_remote"
+  else
+    rh_warn "No remote configured."
+  fi
+
+  if [ -n "$default_branch" ]; then
+    rh_log "Default branch: $default_branch"
+  else
+    rh_warn "Could not detect default branch."
+    rc=$((rc | RH_RC_DEFAULT_UNKNOWN))
+  fi
+
+  rh_log "Current branch: $current_branch"
+  if [ "$current_branch" = "DETACHED" ]; then
+    rh_warn "HEAD is detached."
+    rc=$((rc | RH_RC_DIVERGED))
+  elif [ -n "$default_branch" ] && [ "$current_branch" = "$default_branch" ]; then
+    rh_warn "Current branch is default branch '$default_branch'."
+    rc=$((rc | RH_RC_ON_DEFAULT))
+  fi
+
+  if rh_is_dirty; then
+    rh_warn "Working tree/index is dirty."
+    rc=$((rc | RH_RC_DIRTY))
+  else
+    rh_log "Working tree/index: clean"
+  fi
+
+  if [ "$current_branch" != "DETACHED" ]; then
+    upstream=$(rh_upstream_for_branch "$current_branch")
+    if [ -z "$upstream" ]; then
+      rh_warn "No upstream tracking branch for '$current_branch'."
+      rc=$((rc | RH_RC_NO_UPSTREAM))
+    else
+      set -- $(rh_ahead_behind "$upstream" "$current_branch")
+      behind=${1:-0}
+      ahead=${2:-0}
+      rh_log "Upstream: $upstream (ahead=$ahead behind=$behind)"
+      if [ "$ahead" -gt 0 ] && [ "$behind" -gt 0 ]; then
+        rh_warn "Branch and upstream are diverged."
+        rc=$((rc | RH_RC_DIVERGED))
+      fi
+    fi
+  fi
+
+  wt_count=$(rh_worktree_count)
+  wt_missing=0
+  wt_locked=0
+  wt_locked_no_reason=0
+  wt_issues=$(rh_worktree_issues || true)
+  if [ -n "$wt_issues" ]; then
+    while IFS= read -r issue || [ -n "$issue" ]; do
+      [ -n "$issue" ] || continue
+      issue_type=${issue%%|*}
+      remainder=${issue#*|}
+      case "$issue_type" in
+        MISSING)
+          wt_missing=1
+          rh_warn "Missing worktree directory: $remainder"
+          ;;
+        LOCKED_NO_REASON)
+          wt_locked=$((wt_locked + 1))
+          wt_locked_no_reason=1
+          rh_warn "Locked worktree without reason: $remainder"
+          ;;
+        LOCKED)
+          wt_locked=$((wt_locked + 1))
+          rh_log "Locked worktree (with reason): $remainder"
+          ;;
+      esac
+    done <<EOF
+$wt_issues
+EOF
+  fi
+  rh_log "Worktrees: total=$wt_count locked=$wt_locked missing_dirs=$wt_missing"
+  if [ "$wt_missing" -eq 1 ] || [ "$wt_locked_no_reason" -eq 1 ]; then
+    rc=$((rc | RH_RC_WORKTREE))
+  fi
+
+  if [ -n "$default_branch" ] && rh_branch_exists "$default_branch"; then
+    merged_local=$(rh_local_merged_branches "$default_branch" "$current_branch" || true)
+    if [ -n "$merged_local" ]; then
+      rh_log "Local branches merged into $default_branch:"
+      printf '%s\n' "$merged_local" | sed 's/^/  - /'
+    else
+      rh_log "Local branches merged into $default_branch: none"
+    fi
+  else
+    rh_warn "Skipped local merged-branch report (default branch ref unavailable)."
+  fi
+
+  remotes=$(git remote 2>/dev/null || true)
+  if [ -n "$remotes" ]; then
+    remote_reported=0
+    for remote in $remotes; do
+      remote_default=$(rh_remote_default_branch "$remote" || true)
+      [ -n "$remote_default" ] || continue
+      merged_remote=$(rh_remote_merged_branches "$remote" "$remote_default" || true)
+      if [ -n "$merged_remote" ]; then
+        remote_reported=1
+        rh_log "Remote branches merged into $remote/$remote_default:"
+        printf '%s\n' "$merged_remote" | sed "s#^#  - $remote/#"
+      fi
+    done
+    if [ "$remote_reported" -eq 0 ]; then
+      rh_log "Remote branches merged into default branches: none"
+    fi
+  else
+    rh_log "Remote branches merged into default branches: no remotes configured"
+  fi
+
+  rh_log "DOCTOR_EXIT_CODE=$rc"
+  exit "$rc"
+}
+
+rh_cmd_start_usage() {
+  cat <<'USAGE'
+Usage: rh start <task> [--stash] [--worktree|--no-worktree]
+USAGE
+}
+
+rh_cmd_start() {
+  auto_stash=0
+  use_worktree=${RH_USE_WORKTREES:-1}
+  task=""
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --stash)
+        auto_stash=1
+        ;;
+      --worktree)
+        use_worktree=1
+        ;;
+      --no-worktree)
+        use_worktree=0
+        ;;
+      -h|--help)
+        rh_cmd_start_usage
+        return 0
+        ;;
+      --*)
+        rh_die "Unknown argument for start: $1"
+        ;;
+      *)
+        if [ -z "$task" ]; then
+          task="$1"
+        else
+          task="$task $1"
+        fi
+        ;;
+    esac
+    shift
+  done
+
+  [ -n "$task" ] || {
+    rh_cmd_start_usage
+    exit 1
+  }
+
+  if ! rh_require_git_repo; then
+    rh_die "Not inside a Git repository."
+  fi
+
+  if rh_is_dirty; then
+    if [ "$auto_stash" -eq 1 ]; then
+      stash_label="rh:start:$(rh_slugify "$task"):$(rh_now_stamp)"
+      git stash push -u -m "$stash_label" >/dev/null
+      rh_log "Stashed uncommitted changes: $stash_label"
+    else
+      rh_err "Working tree is dirty; refusing task switch."
+      rh_log "Choose one explicit action first:"
+      rh_log "  1) Commit changes"
+      rh_log "  2) Re-run with --stash"
+      rh_log "  3) Discard changes manually with Git"
+      exit 2
+    fi
+  fi
+
+  default_branch=$(rh_detect_default_branch || true)
+  if [ -z "$default_branch" ]; then
+    rh_die "Unable to detect default branch. Configure RH_DEFAULT_BRANCH in .repo-hygiene/config/rh.conf"
+  fi
+
+  primary_remote=$(rh_primary_remote || true)
+  base_ref="$default_branch"
+  if ! rh_branch_exists "$default_branch"; then
+    if [ -n "$primary_remote" ] && git show-ref --verify --quiet "refs/remotes/$primary_remote/$default_branch"; then
+      base_ref="refs/remotes/$primary_remote/$default_branch"
+    else
+      base_ref=$(rh_current_branch)
+    fi
+  fi
+
+  slug=$(rh_slugify "$task")
+  branch="task/$slug"
+  current_branch=$(rh_current_branch)
+
+  if [ "$current_branch" = "$branch" ] && [ "$use_worktree" -eq 0 ]; then
+    rh_log "Already on branch: $branch"
+    return 0
+  fi
+
+  if [ "$use_worktree" -eq 1 ] && rh_git_has_worktree; then
+    existing_worktree=$(rh_find_worktree_for_branch "$branch" || true)
+    if [ -n "$existing_worktree" ]; then
+      rh_log "Branch already has a worktree: $existing_worktree"
+      rh_log "Next: cd \"$existing_worktree\""
+      return 0
+    fi
+
+    repo_root=$(rh_repo_root)
+    wt_root="$repo_root/$RH_WORKTREE_ROOT"
+    wt_path="$wt_root/$slug"
+
+    mkdir -p "$wt_root"
+    if [ -d "$wt_path" ]; then
+      if git -C "$wt_path" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        rh_log "Worktree already exists: $wt_path"
+        rh_log "Next: cd \"$wt_path\""
+        return 0
+      fi
+      rh_die "Target path exists and is not a git worktree: $wt_path"
+    fi
+
+    if rh_branch_exists "$branch"; then
+      git worktree add "$wt_path" "$branch"
+    else
+      git worktree add -b "$branch" "$wt_path" "$base_ref"
+    fi
+
+    rh_log "Created isolated worktree at: $wt_path"
+    rh_log "Next: cd \"$wt_path\""
+  else
+    if rh_branch_exists "$branch"; then
+      git switch "$branch"
+      rh_log "Switched to existing branch: $branch"
+    else
+      git switch -c "$branch" "$base_ref"
+      rh_log "Created and switched to branch: $branch"
+    fi
+  fi
+
+  if [ -n "$primary_remote" ]; then
+    rh_log "Optional upstream setup: git push -u $primary_remote $branch"
+  else
+    rh_log "No remote found. Add a remote before pushing."
+  fi
+}
+
+rh_cmd_precommit() {
+  if [ "$#" -gt 0 ]; then
+    case "$1" in
+      -h|--help)
+        rh_log "Usage: rh precommit"
+        return 0
+        ;;
+      *)
+        rh_die "Unknown argument for precommit: $1"
+        ;;
+    esac
+  fi
+
+  if ! rh_require_git_repo; then
+    rh_die "Not inside a Git repository."
+  fi
+
+  default_branch=$(rh_detect_default_branch || true)
+  current_branch=$(rh_current_branch)
+  if [ -n "$default_branch" ] && [ "$current_branch" = "$default_branch" ]; then
+    # Allow merge commits on the default branch — completing a merge is the
+    # standard workflow for integrating feature/fix branches.
+    if git rev-parse MERGE_HEAD >/dev/null 2>&1; then
+      rh_log "Merge commit on '$default_branch' — allowed."
+    else
+      rh_err "Commit blocked: current branch '$current_branch' is the default branch."
+      exit 11
+    fi
+  fi
+
+  staged_files=$(git diff --cached --name-only 2>/dev/null || true)
+  if [ -z "$staged_files" ]; then
+    rh_err "No staged changes. Stage files before committing."
+    exit 12
+  fi
+
+  max_bytes=${RH_MAX_STAGED_FILE_BYTES:-5242880}
+  case "$max_bytes" in
+    ''|*[!0-9]*)
+      rh_die "Invalid RH_MAX_STAGED_FILE_BYTES value: $max_bytes"
+      ;;
+  esac
+
+  huge_found=0
+  conflict_found=0
+
+  while IFS= read -r staged_file || [ -n "$staged_file" ]; do
+    [ -n "$staged_file" ] || continue
+
+    blob_size=$(git cat-file -s ":$staged_file" 2>/dev/null || printf '0')
+    case "$blob_size" in
+      ''|*[!0-9]*)
+        blob_size=0
+        ;;
+    esac
+
+    if [ "$blob_size" -gt "$max_bytes" ]; then
+      rh_err "Staged file exceeds ${max_bytes} bytes: $staged_file ($blob_size bytes)"
+      huge_found=1
+    fi
+
+    if git show ":$staged_file" 2>/dev/null | grep -nE '^(<<<<<<<|=======|>>>>>>>)' >/dev/null 2>&1; then
+      rh_err "Merge conflict marker found in staged file: $staged_file"
+      conflict_found=1
+    fi
+  done <<EOF
+$staged_files
+EOF
+
+  if [ "$huge_found" -eq 1 ] || [ "$conflict_found" -eq 1 ]; then
+    exit 13
+  fi
+
+  # --- Unstaged sprawl warning (advisory, never blocks) ---
+  if [ "${RH_PRECOMMIT_SPRAWL_CHECK:-1}" -eq 1 ]; then
+    staged_count=0
+    while IFS= read -r _sf || [ -n "$_sf" ]; do
+      [ -n "$_sf" ] || continue
+      staged_count=$((staged_count + 1))
+    done <<STAGED_COUNT_EOF
+$staged_files
+STAGED_COUNT_EOF
+
+    unstaged_count=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
+    case "$unstaged_count" in ''|*[!0-9]*) unstaged_count=0 ;; esac
+
+    untracked_count=$(git ls-files --others --exclude-standard 2>/dev/null | wc -l | tr -d ' ')
+    case "$untracked_count" in ''|*[!0-9]*) untracked_count=0 ;; esac
+
+    max_unstaged=${RH_MAX_UNSTAGED_WARN:-20}
+    case "$max_unstaged" in ''|*[!0-9]*) max_unstaged=20 ;; esac
+
+    max_untracked=${RH_MAX_UNTRACKED_WARN:-30}
+    case "$max_untracked" in ''|*[!0-9]*) max_untracked=30 ;; esac
+
+    sprawl_ratio=${RH_SPRAWL_RATIO_WARN:-5}
+    case "$sprawl_ratio" in ''|*[!0-9]*) sprawl_ratio=5 ;; esac
+
+    sprawl_warned=0
+
+    if [ "$max_unstaged" -gt 0 ] && [ "$unstaged_count" -gt "$max_unstaged" ]; then
+      rh_warn "Unstaged sprawl: $unstaged_count modified files not staged (threshold: $max_unstaged)"
+      sprawl_warned=1
+    fi
+
+    if [ "$max_untracked" -gt 0 ] && [ "$untracked_count" -gt "$max_untracked" ]; then
+      rh_warn "Untracked sprawl: $untracked_count untracked files (threshold: $max_untracked)"
+      sprawl_warned=1
+    fi
+
+    if [ "$sprawl_ratio" -gt 0 ] && [ "$staged_count" -gt 0 ]; then
+      outside_count=$((unstaged_count + untracked_count))
+      ratio_threshold=$((staged_count * sprawl_ratio))
+      if [ "$outside_count" -ge "$ratio_threshold" ]; then
+        rh_warn "Staging ratio: $staged_count staged vs $outside_count outside staging (ratio >= ${sprawl_ratio}:1)"
+        sprawl_warned=1
+      fi
+    fi
+
+    if [ "$sprawl_warned" -eq 1 ]; then
+      rh_warn "Consider: git add -p, git stash, or rh recover"
+      rh_warn "(Set RH_PRECOMMIT_SPRAWL_CHECK=0 in rh.conf to disable this warning)"
+    fi
+  fi
+  # --- End sprawl warning ---
+
+  if [ -n "${RH_PRECOMMIT_CMD:-}" ]; then
+    rh_log "Running configured precommit command: $RH_PRECOMMIT_CMD"
+    if ! sh -c "$RH_PRECOMMIT_CMD"; then
+      rh_err "Configured precommit command failed."
+      exit 14
+    fi
+  fi
+
+  rh_log "Precommit checks passed."
+}
+
+rh_cmd_finish_usage() {
+  cat <<'USAGE'
+Usage: rh finish [--mode merge|pr|wip|stash] [--yes]
+USAGE
+}
+
+rh_cmd_finish() {
+  mode="pr"
+  yes=0
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --mode)
+        shift
+        [ "$#" -gt 0 ] || rh_die "Missing value for --mode"
+        mode="$1"
+        ;;
+      --mode=*)
+        mode=${1#--mode=}
+        ;;
+      --yes)
+        yes=1
+        ;;
+      -h|--help)
+        rh_cmd_finish_usage
+        return 0
+        ;;
+      *)
+        rh_die "Unknown argument for finish: $1"
+        ;;
+    esac
+    shift
+  done
+
+  if ! rh_require_git_repo; then
+    rh_die "Not inside a Git repository."
+  fi
+
+  default_branch=$(rh_detect_default_branch || true)
+  current_branch=$(rh_current_branch)
+  primary_remote=$(rh_primary_remote || true)
+
+  if [ "$current_branch" = "DETACHED" ]; then
+    rh_err "Detached HEAD. Run 'rh recover' first."
+    exit 21
+  fi
+
+  if [ -n "$default_branch" ] && [ "$current_branch" = "$default_branch" ]; then
+    rh_err "Finish blocked: you are on default branch '$default_branch'."
+    exit 22
+  fi
+
+  if rh_is_dirty; then
+    case "$mode" in
+      wip)
+        git add -A
+        if git diff --cached --quiet --ignore-submodules --; then
+          rh_err "No committable changes after staging."
+          exit 23
+        fi
+        git commit -m "wip($current_branch): checkpoint $(rh_now_stamp)"
+        rh_log "Created WIP commit."
+        ;;
+      stash)
+        stash_label="rh:finish:$current_branch:$(rh_now_stamp)"
+        git stash push -u -m "$stash_label" >/dev/null
+        rh_log "Stashed uncommitted changes: $stash_label"
+        ;;
+      *)
+        rh_err "Working tree is dirty. Use --mode wip or --mode stash explicitly."
+        exit 24
+        ;;
+    esac
+  fi
+
+  if [ -n "$default_branch" ] && rh_branch_exists "$default_branch"; then
+    ahead_of_default=$(git rev-list --count "$default_branch..$current_branch" 2>/dev/null || printf '0')
+    case "$ahead_of_default" in
+      ''|*[!0-9]*) ahead_of_default=0 ;;
+    esac
+    if [ "$ahead_of_default" -eq 0 ]; then
+      rh_warn "Branch '$current_branch' has no commits ahead of '$default_branch'."
+    else
+      rh_log "Commits ahead of $default_branch: $ahead_of_default"
+    fi
+  fi
+
+  upstream=$(rh_upstream_for_branch "$current_branch")
+  if [ -z "$upstream" ] && [ -n "$primary_remote" ]; then
+    rh_log "Upstream not set. Next: git push -u $primary_remote $current_branch"
+  fi
+
+  case "$mode" in
+    pr)
+      rh_log "Finish mode: pr"
+      if [ -n "$primary_remote" ]; then
+        rh_log "Next: git push -u $primary_remote $current_branch"
+      fi
+      rh_log "Next: open a PR from '$current_branch' to '${default_branch:-<default-branch>}'"
+      ;;
+    wip)
+      rh_log "Finish mode: wip"
+      if [ -n "$primary_remote" ]; then
+        rh_log "Next: git push -u $primary_remote $current_branch"
+      fi
+      ;;
+    stash)
+      rh_log "Finish mode: stash"
+      rh_log "Next: git stash list"
+      rh_log "Next: git stash pop   # when you resume this task"
+      ;;
+    merge)
+      if [ -z "$default_branch" ]; then
+        rh_err "Cannot merge: default branch is unknown."
+        exit 25
+      fi
+
+      rh_log "Finish mode: merge requested"
+      rh_log "Rollback suggestion before merge: git tag rh/merge-backup-$(rh_now_stamp) HEAD"
+
+      if [ "$yes" -ne 1 ]; then
+        rh_warn "Merge preview only. Re-run with --yes to execute."
+        rh_log "Preview commands:"
+        rh_log "  git switch $default_branch"
+        rh_log "  git merge --no-ff $current_branch"
+        if [ -n "$primary_remote" ]; then
+          rh_log "  git push $primary_remote $default_branch"
+        fi
+        exit 26
+      fi
+
+      if rh_is_dirty; then
+        rh_err "Cannot merge with a dirty working tree."
+        exit 27
+      fi
+
+      git switch "$default_branch"
+      git merge --no-ff "$current_branch"
+      rh_log "Merged '$current_branch' into '$default_branch' locally."
+      if [ -n "$primary_remote" ]; then
+        rh_log "Next: git push $primary_remote $default_branch"
+      fi
+      ;;
+    *)
+      rh_die "Unsupported finish mode: $mode"
+      ;;
+  esac
+}
+
+rh_cmd_cleanup_usage() {
+  cat <<'USAGE'
+Usage: rh cleanup [--local] [--remote] [--merged-only] [--dry-run] [--no-dry-run] [--yes]
+
+Defaults:
+  --local --merged-only --dry-run
+USAGE
+}
+
+rh_cmd_cleanup() {
+  do_local=1
+  do_remote=0
+  dry_run=1
+  yes=0
+  merged_only=1
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --local)
+        do_local=1
+        ;;
+      --remote)
+        do_remote=1
+        ;;
+      --merged-only)
+        merged_only=1
+        ;;
+      --dry-run)
+        dry_run=1
+        ;;
+      --no-dry-run)
+        dry_run=0
+        ;;
+      --yes)
+        yes=1
+        dry_run=0
+        ;;
+      -h|--help)
+        rh_cmd_cleanup_usage
+        return 0
+        ;;
+      *)
+        rh_die "Unknown argument for cleanup: $1"
+        ;;
+    esac
+    shift
+  done
+
+  if ! rh_require_git_repo; then
+    rh_die "Not inside a Git repository."
+  fi
+
+  if [ "$merged_only" -ne 1 ]; then
+    rh_warn "Only merged-branch cleanup is supported. Continuing with --merged-only behavior."
+    merged_only=1
+  fi
+
+  if [ "$dry_run" -eq 0 ] && [ "$yes" -ne 1 ]; then
+    rh_die "Refusing to execute cleanup without --yes. Use --dry-run to preview."
+  fi
+
+  mode_label="DRY-RUN"
+  if [ "$dry_run" -eq 0 ]; then
+    mode_label="EXECUTE"
+    rh_log "Rollback suggestion before cleanup: git tag rh/cleanup-backup-$(rh_now_stamp) HEAD"
+  fi
+
+  default_branch=$(rh_detect_default_branch || true)
+  current_branch=$(rh_current_branch)
+  rh_log "Cleanup mode: $mode_label"
+
+  if [ "$do_local" -eq 1 ]; then
+    if [ -z "$default_branch" ] || ! rh_branch_exists "$default_branch"; then
+      rh_warn "Skipping local cleanup: default branch is unavailable locally."
+    else
+      local_candidates=$(rh_local_merged_branches "$default_branch" "$current_branch" || true)
+      if [ -z "$local_candidates" ]; then
+        rh_log "Local merged branches to clean: none"
+      else
+        rh_log "Local merged branches to clean:"
+        while IFS= read -r branch || [ -n "$branch" ]; do
+          [ -n "$branch" ] || continue
+          if [ "$dry_run" -eq 1 ]; then
+            rh_log "  - $branch (would run: git branch -d $branch)"
+          else
+            rh_log "  - deleting local branch: $branch"
+            git branch -d "$branch"
+          fi
+        done <<EOF
+$local_candidates
+EOF
+      fi
+    fi
+  fi
+
+  if [ "$do_remote" -eq 1 ]; then
+    remotes=$(git remote 2>/dev/null || true)
+    if [ -z "$remotes" ]; then
+      rh_warn "Skipping remote cleanup: no remotes configured."
+    else
+      for remote in $remotes; do
+        remote_default=$(rh_remote_default_branch "$remote" || true)
+        if [ -z "$remote_default" ]; then
+          rh_warn "Skipping remote '$remote': default branch unknown."
+          continue
+        fi
+
+        remote_candidates=$(rh_remote_merged_branches "$remote" "$remote_default" || true)
+        if [ -z "$remote_candidates" ]; then
+          rh_log "Remote merged branches to clean for $remote/$remote_default: none"
+        else
+          rh_log "Remote merged branches to clean for $remote/$remote_default:"
+          while IFS= read -r branch || [ -n "$branch" ]; do
+            [ -n "$branch" ] || continue
+            if [ "$dry_run" -eq 1 ]; then
+              rh_log "  - $remote/$branch (would run: git push $remote --delete $branch)"
+            else
+              rh_log "  - deleting remote branch: $remote/$branch"
+              git push "$remote" --delete "$branch"
+            fi
+          done <<EOF
+$remote_candidates
+EOF
+        fi
+
+        if [ "$dry_run" -eq 1 ]; then
+          rh_log "  - remote prune preview for $remote:"
+          git remote prune "$remote" --dry-run || true
+        else
+          rh_log "  - pruning stale remote refs for $remote"
+          git remote prune "$remote"
+        fi
+      done
+    fi
+  fi
+
+  missing_worktree=0
+  wt_issues=$(rh_worktree_issues || true)
+  if [ -n "$wt_issues" ]; then
+    while IFS= read -r issue || [ -n "$issue" ]; do
+      [ -n "$issue" ] || continue
+      issue_type=${issue%%|*}
+      issue_path=${issue#*|}
+      if [ "$issue_type" = "MISSING" ]; then
+        missing_worktree=1
+        rh_warn "Missing worktree metadata entry: $issue_path"
+      fi
+    done <<EOF
+$wt_issues
+EOF
+  fi
+
+  if [ "$missing_worktree" -eq 1 ]; then
+    if [ "$dry_run" -eq 1 ]; then
+      rh_log "Worktree metadata prune preview: git worktree prune --verbose --dry-run"
+      git worktree prune --verbose --dry-run || true
+    else
+      rh_log "Pruning stale worktree metadata"
+      git worktree prune --verbose
+    fi
+  else
+    rh_log "Worktree metadata cleanup: no missing worktrees detected"
+  fi
+}
+
+rh_cmd_recover() {
+  if [ "$#" -gt 0 ]; then
+    case "$1" in
+      -h|--help)
+        rh_log "Usage: rh recover"
+        return 0
+        ;;
+      *)
+        rh_die "Unknown argument for recover: $1"
+        ;;
+    esac
+  fi
+
+  if ! rh_require_git_repo; then
+    rh_die "Not inside a Git repository."
+  fi
+
+  default_branch=$(rh_detect_default_branch || true)
+  current_branch=$(rh_current_branch)
+  primary_remote=$(rh_primary_remote || true)
+  stamp=$(rh_now_stamp)
+
+  rh_log "Step 1: Inspect current state"
+  rh_log "  git status -sb"
+  rh_log "  git branch --show-current"
+  rh_log "  git worktree list --porcelain"
+
+  rh_log "Step 2: Backup before risky actions"
+  rh_log "  git tag rh/recover-$stamp HEAD"
+  rh_log "  git stash push -u -m 'rh:recover-$stamp'"
+
+  rh_log "Detected state summary:"
+  rh_log "  - current branch: $current_branch"
+  rh_log "  - default branch: ${default_branch:-unknown}"
+  rh_log "  - primary remote: ${primary_remote:-none}"
+
+  if [ "$current_branch" = "DETACHED" ]; then
+    rh_warn "Detached HEAD detected."
+    rh_log "Suggested safe path:"
+    rh_log "  git switch -c task/recovered-$stamp"
+  fi
+
+  if [ -n "$default_branch" ] && [ "$current_branch" = "$default_branch" ] && rh_is_dirty; then
+    rh_warn "Uncommitted edits detected on default branch '$default_branch'."
+    rh_log "Suggested safe path:"
+    rh_log "  git switch -c task/salvage-$stamp"
+    rh_log "  git add -A && git commit -m 'salvage: move work off $default_branch'"
+  fi
+
+  wt_issues=$(rh_worktree_issues || true)
+  if [ -n "$wt_issues" ]; then
+    while IFS= read -r issue || [ -n "$issue" ]; do
+      [ -n "$issue" ] || continue
+      issue_type=${issue%%|*}
+      issue_path=${issue#*|}
+      case "$issue_type" in
+        MISSING)
+          rh_warn "Lost worktree directory detected: $issue_path"
+          rh_log "Suggested safe path:"
+          rh_log "  git worktree prune --verbose --dry-run"
+          rh_log "  git worktree prune --verbose   # after review"
+          ;;
+      esac
+    done <<EOF
+$wt_issues
+EOF
+  fi
+
+  if [ "$current_branch" != "DETACHED" ]; then
+    upstream=$(rh_upstream_for_branch "$current_branch")
+    if [ -n "$upstream" ]; then
+      set -- $(rh_ahead_behind "$upstream" "$current_branch")
+      behind=${1:-0}
+      ahead=${2:-0}
+      if [ "$ahead" -gt 0 ] && [ "$behind" -gt 0 ]; then
+        rh_warn "Diverged branch detected: $current_branch vs $upstream"
+        rh_log "Suggested safe path:"
+        if [ -n "$primary_remote" ]; then
+          rh_log "  git fetch $primary_remote"
+        fi
+        rh_log "  git log --oneline --left-right $upstream...$current_branch"
+        rh_log "  git rebase $upstream   # rewrites history, confirm with team first"
+        rh_log "  # or: git merge $upstream"
+      fi
+    fi
+  fi
+
+  untracked_count=$(rh_untracked_count)
+  case "$untracked_count" in
+    ''|*[!0-9]*) untracked_count=0 ;;
+  esac
+  threshold=${RH_UNTRACKED_WARN_THRESHOLD:-100}
+  case "$threshold" in
+    ''|*[!0-9]*) threshold=100 ;;
+  esac
+
+  if [ "$untracked_count" -ge "$threshold" ]; then
+    rh_warn "High untracked-file count detected: $untracked_count"
+    rh_log "Suggested safe path:"
+    rh_log "  git clean -ndx   # preview only"
+    rh_log "  git clean -fdx   # destructive, run only with explicit approval"
+  fi
+
+  rh_log "No destructive action was executed by 'rh recover'."
+}
+
+main() {
+  cmd="${1:-}"
+  if [ "$#" -gt 0 ]; then
+    shift
+  fi
+
+  case "$cmd" in
+    doctor)
+      rh_cmd_doctor "$@"
+      ;;
+    start)
+      rh_cmd_start "$@"
+      ;;
+    precommit)
+      rh_cmd_precommit "$@"
+      ;;
+    finish)
+      rh_cmd_finish "$@"
+      ;;
+    cleanup)
+      rh_cmd_cleanup "$@"
+      ;;
+    recover)
+      rh_cmd_recover "$@"
+      ;;
+    help|-h|--help|'')
+      rh_usage
+      ;;
+    *)
+      rh_die "Unknown command: $cmd"
+      ;;
+  esac
+}
+
+main "$@"

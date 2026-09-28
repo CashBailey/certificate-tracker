@@ -1,0 +1,123 @@
+/**
+ * CertTypeTab Styles — follows EmployeesPage patterns.
+ */
+
+.certtype-tab {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Table */
+.certtype-table-container {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.certtype-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.certtype-table th,
+.certtype-table td {
+  padding: var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.certtype-table th {
+  background: var(--bg-page);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-secondary);
+  font-size: var(--font-small);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.certtype-table tbody tr:hover {
+  background: var(--bg-page);
+}
+
+.certtype-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Cell Styles */
+.certtype-table .cell-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+}
+
+.certtype-table .cell-description {
+  color: var(--ink-secondary);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.certtype-table .cell-validity {
+  white-space: nowrap;
+}
+
+.certtype-table .cell-date {
+  color: var(--ink-muted);
+  white-space: nowrap;
+  font-size: var(--font-small);
+}
+
+/* Validity Badge */
+.validity-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-small);
+  font-weight: var(--font-weight-medium);
+  background: var(--info-light);
+  color: var(--info-dark);
+}
+
+.validity-badge--none {
+  background: var(--gray-light);
+  color: var(--gray-dark);
+}
+
+/* Form */
+.certtype-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.certtype-form textarea {
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .certtype-table-container {
+    overflow-x: auto;
+  }
+
+  .certtype-table {
+    min-width: 700px;
+  }
+}
+
+@media (max-width: 768px) {
+  .certtype-table th,
+  .certtype-table td {
+    padding: var(--space-3);
+  }
+
+  .actions-cell {
+    flex-direction: column;
+  }
+}

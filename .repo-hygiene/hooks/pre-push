@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+# RH_MANAGED_HOOK: repo-hygiene-autopilot v1
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+[ -n "$repo_root" ] || exit 0
+
+rh="$repo_root/.repo-hygiene/rh"
+[ -x "$rh" ] || exit 0
+
+rc=0
+"$rh" doctor >/dev/null 2>&1 || rc=$?
+
+# Block pushes from default branch UNLESS we just completed a merge.
+# Pushing main after merging a feature branch is the standard workflow.
+if [ $((rc & 1)) -ne 0 ]; then
+  # Check if HEAD is a merge commit (has >1 parent)
+  parent_count=$(git rev-list --parents -n1 HEAD 2>/dev/null | wc -w)
+  parent_count=$((parent_count - 1))  # subtract the commit hash itself
+  if [ "$parent_count" -gt 1 ]; then
+    echo "pre-push: pushing merge commit on default branch — allowed."
+  else
+    echo "pre-push blocked: current branch is the default branch."
+    echo "Create a task branch with: ./.repo-hygiene/rh start <task>"
+    exit 1
+  fi
+fi
+
+# Warn on diverged status; allow push to proceed.
+if [ $((rc & 8)) -ne 0 ]; then
+  echo "pre-push warning: branch appears diverged from upstream. Review with: ./.repo-hygiene/rh doctor"
+fi
+
+exit 0

@@ -1,0 +1,228 @@
+/**
+ * Review Queue Page Styles
+ */
+
+.review-queue-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+/* Summary Strip */
+.summary-strip {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.summary-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-small);
+  font-weight: var(--font-weight-medium);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--ink-secondary);
+}
+
+.summary-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.summary-pill.active {
+  transform: translateY(-1px);
+}
+
+.summary-pill__count {
+  font-weight: var(--font-weight-bold);
+}
+
+.summary-pill--pending {
+  border-color: var(--warning);
+}
+
+.summary-pill--pending.active {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.summary-pill--approved {
+  border-color: var(--success);
+}
+
+.summary-pill--approved.active {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+.summary-pill--rejected {
+  border-color: var(--error);
+}
+
+.summary-pill--rejected.active {
+  background: var(--error-light);
+  color: var(--error-dark);
+}
+
+.summary-pill:not(.summary-pill--pending):not(.summary-pill--approved):not(.summary-pill--rejected).active {
+  background: var(--info-light);
+  color: var(--info-dark);
+  border-color: var(--info);
+}
+
+/* Extractions Grid */
+.extractions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-6);
+}
+
+.extraction-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  text-decoration: none;
+  color: inherit;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.extraction-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.extraction-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.extraction-id {
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-primary);
+  font-size: var(--font-h3);
+}
+
+.extraction-card__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.extraction-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.stat-label {
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+  flex-shrink: 0;
+}
+
+.stat-value {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-secondary);
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.stat-value.needs-review {
+  color: var(--error);
+  font-weight: var(--font-weight-semibold);
+}
+
+.extraction-card__footer {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+
+.extraction-card__footer .date {
+  color: var(--ink-muted);
+  font-size: var(--font-caption);
+}
+
+/* Custom Date Range (C4) */
+.date-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.date-range-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-small);
+  color: var(--ink-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.date-input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-small);
+  background: var(--bg-surface);
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--info);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .summary-strip {
+    gap: var(--space-2);
+  }
+
+  .summary-pill {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-caption);
+  }
+
+  .extractions-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+
+  .extraction-card {
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-strip {
+    flex-direction: column;
+  }
+
+  .summary-pill {
+    justify-content: center;
+  }
+}

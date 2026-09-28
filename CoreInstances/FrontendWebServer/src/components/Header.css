@@ -1,0 +1,281 @@
+/**
+ * Header Component Styles
+ */
+
+.app-header {
+  background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  height: var(--header-height);
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: calc(var(--content-max-width) + var(--space-8));
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  gap: var(--space-4);
+}
+
+/* Left section: Logos + Title */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.header-logo-wrapper {
+  background: white;
+  border-radius: var(--radius-input);
+  padding: var(--space-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.header-logo {
+  height: 48px;
+  width: auto;
+  display: block;
+}
+
+.header-logo--city {
+  height: 48px;
+}
+
+.header-logo--health {
+  height: 48px;
+}
+
+.header-logo-divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+.header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.header-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: var(--font-caption);
+  transition: color var(--transition-fast);
+}
+
+.header-back-link:hover {
+  color: white;
+}
+
+.back-arrow {
+  font-size: 0.875em;
+}
+
+.header-title {
+  color: white;
+  font-size: var(--font-h2);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right section: User info */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-shrink: 0;
+}
+
+/* User cluster */
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-small);
+  font-weight: var(--font-weight-semibold);
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.user-name {
+  color: white;
+  font-size: var(--font-small);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.user-role-pill {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-caption);
+  font-weight: var(--font-weight-medium);
+  width: fit-content;
+}
+
+.header-signout {
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-button);
+  font-size: var(--font-small);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.header-signout:hover {
+  background: white;
+  color: var(--ink-primary);
+  border-color: white;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive: Tablet */
+@media (max-width: 1024px) {
+  .header-content {
+    padding: 0 var(--space-4);
+  }
+
+  .header-logo--city,
+  .header-logo--health,
+  .header-logo {
+    height: 40px;
+  }
+
+  .header-logo-divider {
+    height: 28px;
+  }
+
+  .header-title {
+    font-size: var(--font-h3);
+  }
+}
+
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .app-header {
+    height: auto;
+    min-height: var(--header-height);
+    padding: var(--space-3) 0;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .header-left {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .header-logo--city,
+  .header-logo--health,
+  .header-logo {
+    height: 36px;
+  }
+
+  .header-title {
+    font-size: var(--font-body);
+  }
+
+  .user-details {
+    display: none;
+  }
+
+  .header-user {
+    gap: var(--space-2);
+  }
+}
+
+/* Responsive: Small Mobile */
+@media (max-width: 480px) {
+  .header-content {
+    padding: 0 var(--space-3);
+  }
+
+  .header-logo--city,
+  .header-logo--health,
+  .header-logo {
+    height: 32px;
+  }
+
+  .header-logo-wrapper {
+    padding: 2px;
+  }
+
+  .header-logo-divider {
+    height: 24px;
+  }
+
+  .back-text {
+    display: none;
+  }
+
+  .header-signout {
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--font-caption);
+  }
+}

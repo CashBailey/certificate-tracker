@@ -1,0 +1,18 @@
+ARG WORKER_IMAGE=laredo-extraction-worker:test-runtime
+FROM ${WORKER_IMAGE}
+
+USER root
+
+COPY docker/workers/test-requirements.lock /tmp/test-requirements.lock
+RUN python -m pip install --no-cache-dir --no-deps -r /tmp/test-requirements.lock \
+    && rm -f /tmp/test-requirements.lock
+
+COPY --chown=appuser:appgroup BackgroundProcessingInstances/ExtractionWorker/src \
+    /repo/BackgroundProcessingInstances/ExtractionWorker/src
+COPY --chown=appuser:appgroup BackgroundProcessingInstances/ExtractionWorker/tests/test_retry_queueing.py \
+    /repo/BackgroundProcessingInstances/ExtractionWorker/tests/test_retry_queueing.py
+COPY --chown=appuser:appgroup BackgroundProcessingInstances/ExtractionWorker/tests/test_queue_recovery_integration.py \
+    /repo/BackgroundProcessingInstances/ExtractionWorker/tests/test_queue_recovery_integration.py
+
+USER appuser
+WORKDIR /repo

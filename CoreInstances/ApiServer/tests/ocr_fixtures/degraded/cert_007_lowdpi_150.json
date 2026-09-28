@@ -1,0 +1,15 @@
+{
+  "id": "cert_007_lowdpi_150",
+  "distortions": [
+    "lowdpi_150"
+  ],
+  "accuracy_threshold": 0.65,
+  "expected_fields": {
+    "certificate_holder_name": "David Alexander Brown",
+    "certificate_type": "Hazardous Materials Handling",
+    "issue_date": "2024-07-22",
+    "expiration_date": "2025-07-22",
+    "issuing_authority": "EPA Training Center",
+    "certificate_number": "EPA-2024-445566"
+  }
+}

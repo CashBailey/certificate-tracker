@@ -1,0 +1,82 @@
+[
+  {
+    "template_id": "lms_certificate",
+    "version": 1,
+    "name": "LMS Certificate of Completion",
+    "description": "Template for City of Laredo Public Health Department LMS training completion certificates",
+    "issuing_authority": "City of Laredo Public Health Department",
+    "certificate_type_ref": null,
+    "detection": {
+      "anchor_keywords": ["CERTIFICATE OF COMPLETION", "City of Laredo", "Public Health Department", "Course Name", "Completion Date"],
+      "anchor_regex": "CERTIFICATE\\s+OF\\s+COMPLETION.*City\\s+of\\s+Laredo|City\\s+of\\s+Laredo.*Public\\s+Health",
+      "min_keyword_matches": 2,
+      "min_confidence_score": 0.70
+    },
+    "alignment": {
+      "reference_anchors": [
+        {"text": "CERTIFICATE OF COMPLETION", "position": [0.30, 0.10]},
+        {"text": "City of Laredo", "position": [0.35, 0.18]},
+        {"text": "Course Name", "position": [0.10, 0.45]}
+      ],
+      "tolerance_bbox": 0.04,
+      "min_anchors_matched": 2
+    },
+    "zones": [
+      {
+        "field_name": "certificate_holder_name",
+        "bbox_norm": [0.09, 0.36, 0.92, 0.48],
+        "parsing": {
+          "regex_pattern": "(?:presented to|awarded to|issued to|certif(?:y|ies) that)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,5})",
+          "strip_whitespace": true
+        },
+        "validators": {
+          "min_length": 2,
+          "max_length": 100
+        },
+        "required": true
+      },
+      {
+        "field_name": "certificate_type",
+        "bbox_norm": [0.09, 0.54, 0.92, 0.61],
+        "parsing": {
+          "strip_whitespace": true,
+          "allow_multiline": true
+        },
+        "validators": {
+          "min_length": 3,
+          "max_length": 200
+        },
+        "required": true
+      },
+      {
+        "field_name": "issue_date",
+        "bbox_norm": [0.09, 0.64, 0.92, 0.73],
+        "parsing": {
+          "date_format": "%m/%d/%Y",
+          "strip_whitespace": true
+        },
+        "validators": {
+          "date_range": ["2015-01-01", "2035-12-31"]
+        },
+        "required": true
+      },
+      {
+        "field_name": "issuing_authority",
+        "bbox_norm": [0.15, 0.80, 0.85, 0.92],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {
+          "min_length": 5
+        },
+        "required": false
+      }
+    ],
+    "review_rules": {
+      "always_review_fields": ["certificate_holder_name", "issue_date"],
+      "skip_generic_if_zone_confident": true
+    },
+    "created_at": "2026-02-03T00:00:00Z",
+    "updated_at": "2026-02-05T00:00:00Z"
+  }
+]

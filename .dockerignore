@@ -1,0 +1,74 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+venv/
+env/
+*.egg-info
+.eggs
+*.egg
+.pytest_cache
+.mypy_cache
+.ruff_cache
+htmlcov/
+.coverage
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.claude/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.docker/
+docker/tls/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Documentation
+docs/
+*.md
+README*
+LICENSE
+
+# Tests
+tests/
+*_test.py
+test_*.py
+
+# Temporary
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Authoritative worker queue test images copy only these focused tests.
+!BackgroundProcessingInstances/ExtractionWorker/tests/
+!BackgroundProcessingInstances/ExtractionWorker/tests/test_retry_queueing.py
+!BackgroundProcessingInstances/ExtractionWorker/tests/test_queue_recovery_integration.py
+!BackgroundProcessingInstances/OcrEngine/tests/
+!BackgroundProcessingInstances/OcrEngine/tests/test_retry_queueing.py
+!BackgroundProcessingInstances/OcrEngine/tests/test_queue_recovery_integration.py

@@ -1,0 +1,39 @@
+# RH_MANAGED_FILE: repo-hygiene-autopilot v1
+SHELL := /bin/sh
+RH := ./.repo-hygiene/rh
+
+.PHONY: rh-doctor rh-start rh-precommit rh-finish rh-cleanup rh-recover rh-install-hooks rh-init-config
+
+rh-doctor:
+	$(RH) doctor
+
+rh-start:
+	@test -n "$(TASK)" || (echo "Usage: make rh-start TASK='my task' [ARGS='--stash']"; exit 1)
+	$(RH) start "$(TASK)" $(ARGS)
+
+rh-precommit:
+	$(RH) precommit
+
+rh-finish:
+	$(RH) finish $(ARGS)
+
+rh-cleanup:
+	$(RH) cleanup --dry-run --local $(ARGS)
+
+rh-recover:
+	$(RH) recover
+
+rh-init-config:
+	@test -f .repo-hygiene/config/rh.conf || cp .repo-hygiene/config/rh.conf.example .repo-hygiene/config/rh.conf
+	@echo "Config ready at .repo-hygiene/config/rh.conf"
+
+rh-install-hooks:
+	@repo_root=$$(git rev-parse --show-toplevel 2>/dev/null) || { echo "Not inside a git repository"; exit 1; }; \
+	hooks_path=$$(git config --get core.hooksPath 2>/dev/null || true); \
+	if [ -z "$$hooks_path" ]; then hooks_path="$$repo_root/.git/hooks"; fi; \
+	case "$$hooks_path" in /*) true ;; *) hooks_path="$$repo_root/$$hooks_path" ;; esac; \
+	mkdir -p "$$hooks_path"; \
+	cp "$$repo_root/.repo-hygiene/hooks/pre-commit" "$$hooks_path/pre-commit"; \
+	cp "$$repo_root/.repo-hygiene/hooks/pre-push" "$$hooks_path/pre-push"; \
+	chmod +x "$$hooks_path/pre-commit" "$$hooks_path/pre-push"; \
+	echo "Installed hooks into $$hooks_path"

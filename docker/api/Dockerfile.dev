@@ -1,0 +1,28 @@
+# ==============================================================================
+# FastAPI API Server - Development
+# ==============================================================================
+FROM python:3.12-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies
+COPY CoreInstances/ApiServer/requirements.txt requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Development: source code mounted as volume for hot-reloading
+
+EXPOSE 8000
+
+# Use uvicorn with reload for development
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/src", "--proxy-headers", "--forwarded-allow-ips", "*"]

@@ -1,0 +1,151 @@
+/**
+ * Design System Tokens
+ * City of Laredo Certificate Management System
+ */
+
+:root {
+  /* Colors - Light Theme */
+  --bg-page: #f5f7fb;
+  --bg-inset: #f8f9fc;
+  --bg-surface: #ffffff;
+  --ink-primary: #1a365d;
+  --ink-secondary: #4a5568;
+  --ink-muted: #6b7280;
+  --border: #e5e7eb;
+
+  /* Gradient Colors */
+  --gradient-start: #1a365d;
+  --gradient-end: #2c5282;
+
+  /* Status Colors */
+  --success: #10b981;
+  --success-light: #dcfce7;
+  --success-dark: #166534;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --warning-dark: #92400e;
+  --error: #dc2626;
+  --error-light: #fee2e2;
+  --error-dark: #991b1b;
+  --info: #3b82f6;
+  --info-light: #dbeafe;
+  --info-dark: #1e40af;
+  --purple: #7e22ce;
+  --purple-light: #f3e8ff;
+  --purple-dark: #7e22ce;
+  --gray-light: #f3f4f6;
+  --gray-dark: #4b5563;
+
+  /* Typography */
+  --font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Font Sizes */
+  --font-display: 1.75rem;      /* 28px */
+  --font-h1: 1.5rem;            /* 24px */
+  --font-h2: 1.25rem;           /* 20px */
+  --font-h3: 1.125rem;          /* 18px */
+  --font-body: 1rem;            /* 16px */
+  --font-small: 0.875rem;       /* 14px */
+  --font-caption: 0.75rem;      /* 12px */
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Spacing */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-button: 6px;
+  --radius-input: 8px;
+  --radius-card: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.18);
+
+  /* Layout */
+  --header-height: 72px;
+  --content-max-width: 1200px;
+  --sidebar-width: 280px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Z-Index Scale */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 900;
+  --z-modal: 1000;
+  --z-tooltip: 1100;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg-page: #0f172a;
+  --bg-inset: #162032;
+  --bg-surface: #1e293b;
+  --ink-primary: #e2e8f0;
+  --ink-secondary: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --border: #334155;
+
+  --gradient-start: #1e3a5f;
+  --gradient-end: #2d5a8e;
+
+  --success-light: #064e3b;
+  --success-dark: #6ee7b7;
+  --warning-light: #78350f;
+  --warning-dark: #fcd34d;
+  --error-light: #7f1d1d;
+  --error-dark: #fca5a5;
+  --info-light: #1e3a5f;
+  --info-dark: #93c5fd;
+  --purple-light: #3b0764;
+  --purple-dark: #c4b5fd;
+  --gray-light: #334155;
+  --gray-dark: #94a3b8;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Smooth theme transition */
+html[data-theme] {
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+html[data-theme] body {
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Responsive breakpoints via CSS custom properties for documentation */
+/*
+  --breakpoint-sm: 480px;   Mobile
+  --breakpoint-md: 768px;   Tablet
+  --breakpoint-lg: 1024px;  Small desktop
+  --breakpoint-xl: 1200px;  Desktop
+*/

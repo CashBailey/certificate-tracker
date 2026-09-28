@@ -1,0 +1,15 @@
+{
+  "id": "cert_006_blur_1",
+  "distortions": [
+    "blur_1"
+  ],
+  "accuracy_threshold": 0.8,
+  "expected_fields": {
+    "certificate_holder_name": "Carmen Rosa Lopez",
+    "certificate_type": "Emergency Medical Responder",
+    "issue_date": "2024-06-18",
+    "expiration_date": "2026-06-18",
+    "issuing_authority": "National Registry of EMTs",
+    "certificate_number": "NREMT-2024-112233"
+  }
+}

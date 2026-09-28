@@ -1,0 +1,15 @@
+{
+  "id": "cert_004_lowdpi_150",
+  "distortions": [
+    "lowdpi_150"
+  ],
+  "accuracy_threshold": 0.65,
+  "expected_fields": {
+    "certificate_holder_name": "Ana Isabel Martinez",
+    "certificate_type": "Bloodborne Pathogens Training",
+    "issue_date": "2024-04-05",
+    "expiration_date": "2025-04-05",
+    "issuing_authority": "OSHA Training Institute",
+    "certificate_number": "OSHA-2024-901234"
+  }
+}

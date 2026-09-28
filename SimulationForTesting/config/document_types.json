@@ -1,0 +1,243 @@
+{
+  "certificate_templates": {
+    "lms_certificate": {
+      "name": "Internal LMS Certificate",
+      "description": "City of Laredo Public Health LMS-generated certificate",
+      "template_file": "templates/certificates/lms_certificate.png",
+      "characteristics": {
+        "style": "clean_digital",
+        "quality": "high",
+        "issuer": "City of Laredo Public Health Department"
+      },
+      "field_positions": {
+        "certificate_holder_name": {
+          "y_percent": 35,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 48,
+          "font_style": "serif_formal",
+          "color": "navy_blue"
+        },
+        "certificate_type": {
+          "y_percent": 58,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 28,
+          "font_style": "serif_formal",
+          "color": "navy_blue"
+        },
+        "completion_date": {
+          "y_percent": 72,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 24,
+          "font_style": "serif_formal",
+          "color": "navy_blue"
+        }
+      },
+      "applicable_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "respiratory_protection_n95",
+        "wic_civil_rights_training",
+        "vfc_program_training"
+      ]
+    },
+    "aha_bls": {
+      "name": "American Heart Association BLS Card",
+      "description": "AHA CPR/BLS eCard format",
+      "template_file": "templates/certificates/aha_bls.png",
+      "characteristics": {
+        "style": "professional",
+        "quality": "high",
+        "issuer": "American Heart Association",
+        "has_qr_code": true,
+        "card_format": true
+      },
+      "field_positions": {
+        "certificate_holder_name": {
+          "y_percent": 40,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 24,
+          "font_style": "sans_serif",
+          "color": "dark_red"
+        },
+        "certificate_type": {
+          "y_percent": 25,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 20,
+          "font_style": "sans_serif",
+          "color": "black"
+        },
+        "completion_date": {
+          "y_percent": 55,
+          "x_percent": 30,
+          "alignment": "left",
+          "font_size": 16,
+          "font_style": "sans_serif",
+          "color": "black"
+        },
+        "expiration_date": {
+          "y_percent": 55,
+          "x_percent": 70,
+          "alignment": "left",
+          "font_size": 16,
+          "font_style": "sans_serif",
+          "color": "black"
+        }
+      },
+      "applicable_certificates": ["cpr_bls"]
+    },
+    "red_cross_cpr": {
+      "name": "American Red Cross CPR Certificate",
+      "description": "Red Cross training certificate",
+      "template_file": "templates/certificates/red_cross_cpr.png",
+      "characteristics": {
+        "style": "professional",
+        "quality": "high",
+        "issuer": "American Red Cross",
+        "has_qr_code": true
+      },
+      "applicable_certificates": ["cpr_bls"]
+    },
+    "osha_certificate": {
+      "name": "OSHA Training Certificate",
+      "description": "Government/OSHA style certificate",
+      "template_file": "templates/certificates/osha_certificate.png",
+      "characteristics": {
+        "style": "government",
+        "quality": "medium",
+        "issuer": "Various OSHA trainers",
+        "has_seal": true
+      },
+      "applicable_certificates": [
+        "bloodborne_pathogens",
+        "fema_ics_nims",
+        "hazcom_training"
+      ]
+    },
+    "texas_license": {
+      "name": "Texas State License",
+      "description": "Texas state professional license",
+      "template_file": "templates/licenses/texas_license.png",
+      "characteristics": {
+        "style": "government",
+        "quality": "high",
+        "issuer": "State of Texas",
+        "has_seal": true,
+        "has_license_number": true
+      },
+      "field_positions": {
+        "certificate_holder_name": {
+          "y_percent": 35,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 28,
+          "font_style": "serif_formal",
+          "color": "black"
+        },
+        "license_number": {
+          "y_percent": 50,
+          "x_percent": 50,
+          "alignment": "center",
+          "font_size": 20,
+          "font_style": "typewriter",
+          "color": "black"
+        },
+        "issue_date": {
+          "y_percent": 65,
+          "x_percent": 30,
+          "alignment": "left",
+          "font_size": 16,
+          "font_style": "serif_formal",
+          "color": "black"
+        },
+        "expiration_date": {
+          "y_percent": 65,
+          "x_percent": 70,
+          "alignment": "left",
+          "font_size": 16,
+          "font_style": "serif_formal",
+          "color": "black"
+        }
+      },
+      "applicable_certificates": [
+        "rn_license_texas",
+        "lvn_license_texas",
+        "chw_certification",
+        "registered_sanitarian_license",
+        "pesticide_applicator_license"
+      ]
+    },
+    "generic_training": {
+      "name": "Generic Third-Party Training",
+      "description": "Variable quality third-party certificates",
+      "template_file": "templates/certificates/generic_training.png",
+      "characteristics": {
+        "style": "variable",
+        "quality": "variable",
+        "issuer": "Various training providers"
+      }
+    }
+  },
+  "form_templates": {
+    "hipaa_acknowledgment": {
+      "name": "HIPAA Acknowledgment Form",
+      "description": "HIPAA privacy acknowledgment with signature",
+      "template_file": "templates/forms/hipaa_acknowledgment.png",
+      "when_required": "at_hire",
+      "requires_signature": true,
+      "field_positions": {
+        "employee_name": {
+          "y_percent": 25,
+          "x_percent": 60,
+          "alignment": "left",
+          "font_style": "handwritten"
+        },
+        "date": {
+          "y_percent": 85,
+          "x_percent": 70,
+          "alignment": "left",
+          "font_style": "handwritten"
+        },
+        "signature": {
+          "y_percent": 85,
+          "x_percent": 30,
+          "alignment": "left",
+          "type": "signature"
+        }
+      }
+    },
+    "policy_acknowledgment": {
+      "name": "Employee Policies Acknowledgment",
+      "description": "Policies and procedures acknowledgment",
+      "template_file": "templates/forms/policy_acknowledgment.png",
+      "when_required": "at_hire",
+      "requires_signature": true
+    },
+    "emergency_contact": {
+      "name": "Emergency Contact Form",
+      "description": "Emergency contact information",
+      "template_file": "templates/forms/emergency_contact.png",
+      "when_required": "at_hire",
+      "requires_signature": false,
+      "contains_pii": true
+    },
+    "confidentiality_agreement": {
+      "name": "Confidentiality Agreement",
+      "description": "Employee confidentiality agreement",
+      "template_file": "templates/forms/confidentiality_agreement.png",
+      "when_required": "at_hire",
+      "requires_signature": true
+    }
+  },
+  "onboarding_document_sequence": [
+    "hipaa_acknowledgment",
+    "policy_acknowledgment",
+    "confidentiality_agreement",
+    "emergency_contact"
+  ]
+}

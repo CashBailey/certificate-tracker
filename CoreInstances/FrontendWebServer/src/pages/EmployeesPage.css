@@ -1,0 +1,222 @@
+/**
+ * Employees Page Styles
+ */
+
+.employees-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.search-form {
+  display: flex;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 300px;
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Employees Table */
+.employees-table-container {
+  background: var(--bg-surface);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.employees-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.employees-table th,
+.employees-table td {
+  padding: var(--space-4);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.employees-table th {
+  background: var(--bg-page);
+  font-weight: var(--font-weight-semibold);
+  color: var(--ink-secondary);
+  font-size: var(--font-small);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.employees-table tbody tr:hover {
+  background: var(--bg-page);
+}
+
+.employees-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.employees-table .inactive-row {
+  opacity: 0.6;
+  background: var(--bg-page);
+}
+
+.employees-table .inactive-row:hover {
+  opacity: 0.8;
+}
+
+/* Cell Styles */
+.cell-emp-number {
+  font-family: ui-monospace, monospace;
+  font-size: var(--font-small);
+}
+
+.cell-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--ink-primary);
+}
+
+.cell-email {
+  color: var(--ink-secondary);
+}
+
+.actions-cell {
+  display: flex;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+/* Role Badges */
+.role-badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-caption);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+}
+
+.role-badge--admin {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.role-badge--manager {
+  background: var(--info-light);
+  color: var(--info-dark);
+}
+
+.role-badge--reviewer {
+  background: var(--purple-light);
+  color: var(--purple-dark);
+}
+
+.role-badge--employee {
+  background: var(--bg-page);
+  color: var(--ink-secondary);
+}
+
+/* Employee Form (Modal) */
+.employee-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.form-help-text {
+  margin: 0;
+  font-size: var(--font-small);
+  color: var(--ink-secondary);
+  background: var(--bg-page);
+  border-left: 3px solid var(--border-accent, var(--info));
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+}
+
+.setup-email-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.setup-email-feedback {
+  font-size: var(--font-small);
+}
+
+.setup-email-feedback--ok {
+  color: var(--success, #2e7d32);
+}
+
+.setup-email-feedback--err {
+  color: var(--danger, #c62828);
+}
+
+.form-hint {
+  display: block;
+  margin-top: var(--space-1);
+  font-size: var(--font-caption);
+  color: var(--ink-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .employees-table-container {
+    overflow-x: auto;
+  }
+
+  .employees-table {
+    min-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-form {
+    min-width: auto;
+  }
+
+  .filters {
+    flex-wrap: wrap;
+  }
+
+  .toolbar .btn--success {
+    width: 100%;
+  }
+
+  .employees-table th,
+  .employees-table td {
+    padding: var(--space-3);
+  }
+
+  .actions-cell {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters {
+    flex-direction: column;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+}

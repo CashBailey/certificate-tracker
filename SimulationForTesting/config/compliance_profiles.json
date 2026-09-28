@@ -1,0 +1,110 @@
+{
+  "compliance_profiles": {
+    "fully_compliant": {
+      "name": "Fully Compliant",
+      "description": "All required certificates current",
+      "percentage": 40,
+      "certificate_states": {
+        "valid": 100,
+        "expiring_soon": 0,
+        "recently_expired": 0,
+        "significantly_overdue": 0,
+        "missing": 0
+      }
+    },
+    "expiring_soon": {
+      "name": "Expiring Soon",
+      "description": "1-2 certificates expire in <30 days",
+      "percentage": 15,
+      "certificate_states": {
+        "valid": 70,
+        "expiring_soon": 20,
+        "recently_expired": 0,
+        "significantly_overdue": 0,
+        "missing": 10
+      }
+    },
+    "recently_expired": {
+      "name": "Recently Expired",
+      "description": "1-2 certificates expired <90 days ago",
+      "percentage": 20,
+      "certificate_states": {
+        "valid": 60,
+        "expiring_soon": 10,
+        "recently_expired": 20,
+        "significantly_overdue": 0,
+        "missing": 10
+      }
+    },
+    "significantly_overdue": {
+      "name": "Significantly Overdue",
+      "description": "Certificates expired 90+ days ago",
+      "percentage": 15,
+      "certificate_states": {
+        "valid": 50,
+        "expiring_soon": 0,
+        "recently_expired": 10,
+        "significantly_overdue": 30,
+        "missing": 10
+      }
+    },
+    "missing_certificates": {
+      "name": "Missing Certificates",
+      "description": "Never completed some required training",
+      "percentage": 10,
+      "certificate_states": {
+        "valid": 60,
+        "expiring_soon": 0,
+        "recently_expired": 0,
+        "significantly_overdue": 0,
+        "missing": 40
+      }
+    }
+  },
+  "certificate_state_definitions": {
+    "valid": {
+      "description": "Certificate is current and won't expire for at least 30 days",
+      "days_from_expiry_min": 31,
+      "days_from_expiry_max": null
+    },
+    "expiring_soon": {
+      "description": "Certificate expires within 30 days",
+      "days_from_expiry_min": 1,
+      "days_from_expiry_max": 30
+    },
+    "recently_expired": {
+      "description": "Certificate expired within last 90 days",
+      "days_from_expiry_min": -90,
+      "days_from_expiry_max": 0
+    },
+    "significantly_overdue": {
+      "description": "Certificate expired more than 90 days ago",
+      "days_from_expiry_min": null,
+      "days_from_expiry_max": -91
+    },
+    "missing": {
+      "description": "Certificate was never completed",
+      "generate_document": false
+    }
+  },
+  "tenure_profiles": {
+    "new_hire": {
+      "description": "Hired within last 90 days",
+      "percentage": 10,
+      "hire_date_range_days": [0, 90],
+      "notes": "Some trainings complete, some pending within 90-day window"
+    },
+    "regular": {
+      "description": "Established employees with regular renewal cycles",
+      "percentage": 70,
+      "hire_date_range_days": [91, 1825],
+      "notes": "Mix of on-time and late renewals"
+    },
+    "long_tenured": {
+      "description": "Multiple renewal cycles visible",
+      "percentage": 20,
+      "hire_date_range_days": [1826, 3650],
+      "notes": "5-10 years tenure, generally compliant but occasional lapses"
+    }
+  }
+}

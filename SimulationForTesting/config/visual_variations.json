@@ -1,0 +1,148 @@
+{
+  "scan_quality_profiles": {
+    "high_quality_scan": {
+      "description": "300 DPI, clean, straight",
+      "percentage": 40,
+      "dpi": 300,
+      "skew_range_degrees": [0, 0.5],
+      "noise_level": 0,
+      "brightness_variation": [-0.02, 0.02],
+      "contrast_variation": [-0.02, 0.02],
+      "blur_radius": 0,
+      "jpeg_quality": 95
+    },
+    "medium_scan": {
+      "description": "150 DPI, slight skew",
+      "percentage": 25,
+      "dpi": 150,
+      "skew_range_degrees": [0, 2],
+      "noise_level": 0.01,
+      "brightness_variation": [-0.05, 0.05],
+      "contrast_variation": [-0.05, 0.05],
+      "blur_radius": 0.5,
+      "jpeg_quality": 85
+    },
+    "phone_photo": {
+      "description": "Variable lighting, perspective distortion",
+      "percentage": 20,
+      "dpi": 200,
+      "skew_range_degrees": [0, 5],
+      "noise_level": 0.02,
+      "brightness_variation": [-0.15, 0.15],
+      "contrast_variation": [-0.1, 0.1],
+      "blur_radius": 0.8,
+      "jpeg_quality": 75,
+      "add_shadows": true,
+      "perspective_distortion": true
+    },
+    "faded_old": {
+      "description": "Low contrast, yellowed",
+      "percentage": 10,
+      "dpi": 150,
+      "skew_range_degrees": [0, 3],
+      "noise_level": 0.03,
+      "brightness_variation": [0.1, 0.2],
+      "contrast_variation": [-0.2, -0.1],
+      "blur_radius": 1.0,
+      "jpeg_quality": 70,
+      "yellowing": true,
+      "fade_factor": 0.3
+    },
+    "poor_quality": {
+      "description": "Cropped, blurry, shadows",
+      "percentage": 5,
+      "dpi": 100,
+      "skew_range_degrees": [2, 8],
+      "noise_level": 0.05,
+      "brightness_variation": [-0.2, 0.2],
+      "contrast_variation": [-0.15, 0.15],
+      "blur_radius": 2.0,
+      "jpeg_quality": 60,
+      "random_crop": true,
+      "add_shadows": true
+    }
+  },
+  "font_profiles": {
+    "serif_formal": {
+      "description": "Official certificates, licenses",
+      "fonts": ["Times New Roman", "Georgia", "Palatino"],
+      "usage_percentage": 50
+    },
+    "sans_serif": {
+      "description": "Modern training providers",
+      "fonts": ["Arial", "Helvetica", "Calibri"],
+      "usage_percentage": 30
+    },
+    "script_cursive": {
+      "description": "Name fields on formal certificates",
+      "fonts": ["Brush Script", "Lucida Handwriting"],
+      "usage_percentage": 10
+    },
+    "typewriter": {
+      "description": "Older documents, government forms",
+      "fonts": ["Courier New", "Courier"],
+      "usage_percentage": 5
+    },
+    "handwritten": {
+      "description": "Filled forms, dates, signatures",
+      "fonts": ["casual_handwriting"],
+      "usage_percentage": 5
+    }
+  },
+  "text_colors": {
+    "navy_blue": "#2B3A67",
+    "black": "#000000",
+    "dark_gray": "#333333",
+    "dark_blue": "#1a237e",
+    "dark_red": "#8B0000"
+  },
+  "artifacts": {
+    "stamps": {
+      "types": ["COPY", "RECEIVED", "VERIFIED", "ORIGINAL"],
+      "percentage_with_stamp": 15,
+      "colors": ["#FF0000", "#0000FF", "#000000"],
+      "opacity_range": [0.3, 0.7]
+    },
+    "signatures": {
+      "percentage_with_signature": 30,
+      "position": "bottom_right",
+      "style": ["cursive", "scribble", "initials"]
+    },
+    "creases": {
+      "percentage_with_creases": 10,
+      "types": ["horizontal_fold", "vertical_fold", "corner_fold"]
+    },
+    "highlights": {
+      "percentage_with_highlights": 5,
+      "colors": ["#FFFF00", "#00FF00"],
+      "opacity": 0.3
+    }
+  },
+  "date_formats": {
+    "us_standard": {
+      "format": "%m/%d/%Y",
+      "example": "03/15/2024",
+      "percentage": 50
+    },
+    "written_out": {
+      "format": "%B %d, %Y",
+      "example": "March 15, 2024",
+      "percentage": 25
+    },
+    "iso": {
+      "format": "%Y-%m-%d",
+      "example": "2024-03-15",
+      "percentage": 10
+    },
+    "abbreviated": {
+      "format": "%m/%d/%y",
+      "example": "03/15/24",
+      "percentage": 10
+    },
+    "european": {
+      "format": "%d/%m/%Y",
+      "example": "15/03/2024",
+      "percentage": 5
+    }
+  }
+}

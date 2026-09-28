@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "image": {
+    "path": "../certificate_6275_preview_blank.png",
+    "width": 2000,
+    "height": 1545
+  },
+  "shapes": [
+    {
+      "id": 1,
+      "name": "NameOnCertificate",
+      "kind": "rect",
+      "bbox": [
+        179.891,
+        550.361,
+        1849.675,
+        742.72
+      ]
+    },
+    {
+      "id": 2,
+      "name": "CourseTrainingName",
+      "kind": "rect",
+      "bbox": [
+        179.891,
+        836.228,
+        1849.675,
+        943.094
+      ]
+    },
+    {
+      "id": 3,
+      "name": "TrainingCompletionDate",
+      "kind": "rect",
+      "bbox": [
+        179.891,
+        988.512,
+        1849.675,
+        1130.11
+      ]
+    }
+  ]
+}

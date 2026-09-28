@@ -1,0 +1,19 @@
+=== Email Intake Worker — last 5 minutes ===
+
+=== Extraction Worker — relevant lines for doc 13897 ===
+{"document_id": 13897, "event": "Processing extraction task", "logger": "__main__", "level": "info", "timestamp": "2026-04-26T20:26:15.776595Z"}
+No GPU detected, consensus runs will be sequential
+LLM consensus mode: sequential (GPU auto-detect: none, N/A MB VRAM)
+Starting consensus extraction: N=3, temps=0.30
+Judge resolved fields: certificate_holder_name, certificate_type, issue_date, issuing_authority
+LLM consensus cleaned fields: certificate_holder_name, issue_date, certificate_type
+{"document_id": 13897, "employee_id": 2545, "reason": "Certificate holder name 'User Name' does not match employee 'Ahmed Abdallah'", "event": "Name mismatch auto-rejected (email intake)", "logger": "__main__", "level": "warning", "timestamp": "2026-04-26T20:28:44.135556Z"}
+{"document_id": 13897, "error": "No module named 'aiosmtplib'", "event": "Failed to send name mismatch rejection email", "logger": "__main__", "level": "error", "timestamp": "2026-04-26T20:28:44.138644Z"}
+{"document_id": 13897, "event": "Extraction auto-rejected for name mismatch", "logger": "__main__", "level": "info", "timestamp": "2026-04-26T20:28:44.157112Z"}
+
+=== OCR Engine — last 10 minutes ===
+{"request_id": "de3f06b5-aa94-4cdf-bee1-a67626db1abd", "page_num": 0, "bbox": [0.0, 0.0, 1.0, 1.0], "event": "Processing OCR task", "logger": "__main__", "level": "info", "timestamp": "2026-04-26T20:26:26.085504Z"}
+/usr/local/lib/python3.12/site-packages/torch/utils/data/dataloader.py:775: UserWarning: 'pin_memory' argument is set as true but no accelerator is found, then device pinned memory won't be used.
+  super().__init__(loader)
+{"request_id": "de3f06b5-aa94-4cdf-bee1-a67626db1abd", "spans_found": 37, "event": "OCR completed", "logger": "__main__", "level": "info", "timestamp": "2026-04-26T20:27:36.007005Z"}
+{"request_id": "de3f06b5-aa94-4cdf-bee1-a67626db1abd", "result_key": "ocr_results:de3f06b5-aa94-4cdf-bee1-a67626db1abd", "event": "OCR result published", "logger": "__main__", "level": "info", "timestamp": "2026-04-26T20:27:36.012209Z"}

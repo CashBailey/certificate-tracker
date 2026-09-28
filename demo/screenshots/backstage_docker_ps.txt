@@ -1,0 +1,16 @@
+SERVICE               STATUS                 PORTS
+api                   Up 4 hours (healthy)   8000/tcp
+caddy                 Up 4 hours (healthy)   80/tcp, 2019/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp, 443/udp
+clamav                Up 4 hours (healthy)   3310/tcp, 7357/tcp
+email-intake-worker   Up 3 hours             
+extraction-worker     Up 4 hours             
+frontend              Up 4 hours (healthy)   3000/tcp
+greenmail             Up 3 hours             127.0.0.1:3025->3025/tcp, 3110/tcp, 3465/tcp, 3993/tcp, 127.0.0.1:3143->3143/tcp, 127.0.0.1:8080->8080/tcp, 3995/tcp
+minio                 Up 4 hours (healthy)   9000/tcp
+ocr-engine            Up 4 hours             
+ollama                Up 4 hours             11434/tcp
+pgadmin               Up 3 hours             80/tcp, 443/tcp
+postgres              Up 4 hours (healthy)   5432/tcp
+redis                 Up 4 hours (healthy)   6379/tcp
+roundcube             Up 3 hours             127.0.0.1:9090->80/tcp
+scheduler-worker      Up 4 hours             

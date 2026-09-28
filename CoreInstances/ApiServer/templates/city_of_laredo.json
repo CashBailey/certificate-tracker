@@ -1,0 +1,85 @@
+[
+  {
+    "template_id": "city_of_laredo",
+    "version": 2,
+    "name": "CoL_Cert",
+    "description": "Generic City of Laredo certificate.",
+    "issuing_authority": "City of Laredo",
+    "certificate_type_ref": null,
+    "detection": {
+      "anchor_keywords": [],
+      "min_keyword_matches": 2,
+      "min_confidence_score": 0.7
+    },
+    "alignment": {
+      "reference_anchors": [],
+      "tolerance_bbox": 0.04,
+      "min_anchors_matched": 2
+    },
+    "zones": [
+      {
+        "field_name": "certificate_holder_name",
+        "bbox_norm": [
+          0.19301898734177214,
+          0.43595769682726204,
+          0.8050487341772152,
+          0.5394
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      },
+      {
+        "field_name": "certificate_type",
+        "bbox_norm": [
+          0.19301898734177214,
+          0.5769682726204466,
+          0.8050487341772152,
+          0.6886
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      },
+      {
+        "field_name": "issue_date",
+        "bbox_norm": [
+          0.5222,
+          0.663924794359577,
+          0.8056962025316455,
+          0.7438
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true
+      },
+      {
+        "field_name": "issuing_authority",
+        "bbox_norm": [
+          0.4506329113924051,
+          0.13278495887191538,
+          0.55,
+          0.3161
+        ],
+        "parsing": {
+          "strip_whitespace": true
+        },
+        "validators": {},
+        "required": true,
+        "hardcoded_value": "City of Laredo"
+      }
+    ],
+    "review_rules": {
+      "always_review_fields": [],
+      "skip_generic_if_zone_confident": true
+    },
+    "created_at": "2026-03-23T17:03:49.691Z",
+    "updated_at": "2026-03-23T17:03:49.691Z"
+  }
+]

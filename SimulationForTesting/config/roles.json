@@ -1,0 +1,217 @@
+{
+  "roles": {
+    "administrative_staff": {
+      "name": "Administrative Staff",
+      "description": "Office workers, clerks, HR",
+      "percentage": 20,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security"
+      ]
+    },
+    "registered_nurse": {
+      "name": "Registered Nurse (RN)",
+      "description": "Licensed RNs",
+      "percentage": 15,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "cpr_bls",
+        "rn_license_texas",
+        "respiratory_protection_n95",
+        "vfc_program_training"
+      ]
+    },
+    "licensed_vocational_nurse": {
+      "name": "Licensed Vocational Nurse (LVN)",
+      "description": "Licensed LVNs",
+      "percentage": 12,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "cpr_bls",
+        "lvn_license_texas",
+        "respiratory_protection_n95",
+        "vfc_program_training"
+      ]
+    },
+    "community_health_worker": {
+      "name": "Community Health Worker",
+      "description": "CHW certified outreach",
+      "percentage": 15,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "cpr_bls",
+        "chw_certification",
+        "respiratory_protection_n95"
+      ]
+    },
+    "environmental_health_specialist": {
+      "name": "Environmental Health Specialist",
+      "description": "Sanitarians, inspectors",
+      "percentage": 8,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "registered_sanitarian_license",
+        "hazcom_training"
+      ]
+    },
+    "vector_control_technician": {
+      "name": "Vector Control Technician",
+      "description": "Pesticide applicators",
+      "percentage": 5,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "pesticide_applicator_license",
+        "hazcom_training",
+        "respiratory_protection_n95"
+      ]
+    },
+    "wic_program_staff": {
+      "name": "WIC Program Staff",
+      "description": "WIC nutrition program",
+      "percentage": 10,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "wic_civil_rights_training"
+      ]
+    },
+    "emergency_response": {
+      "name": "Emergency Response",
+      "description": "Emergency preparedness",
+      "percentage": 5,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "cpr_bls",
+        "fema_ics_nims",
+        "hazcom_training",
+        "respiratory_protection_n95"
+      ]
+    },
+    "clinical_support": {
+      "name": "Clinical Support",
+      "description": "Medical assistants, phlebotomists",
+      "percentage": 10,
+      "required_certificates": [
+        "sexual_harassment_training",
+        "workplace_violence_prevention",
+        "hipaa_privacy_security",
+        "bloodborne_pathogens",
+        "cpr_bls",
+        "respiratory_protection_n95",
+        "vfc_program_training"
+      ]
+    }
+  },
+  "certificates": {
+    "sexual_harassment_training": {
+      "name": "Sexual Harassment & Other Harassment Prevention Training",
+      "validity_days": 730,
+      "grace_period_days": 90,
+      "template": "lms_certificate"
+    },
+    "workplace_violence_prevention": {
+      "name": "Workplace Violence Prevention Training",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "lms_certificate"
+    },
+    "hipaa_privacy_security": {
+      "name": "HIPAA Privacy & Security Training (HB 300 - Texas)",
+      "validity_days": 730,
+      "grace_period_days": 90,
+      "template": "lms_certificate"
+    },
+    "bloodborne_pathogens": {
+      "name": "Bloodborne Pathogens Training (OSHA)",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "osha_certificate"
+    },
+    "cpr_bls": {
+      "name": "CPR / Basic Life Support (BLS)",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "aha_bls"
+    },
+    "rn_license_texas": {
+      "name": "Registered Nurse (RN) License - Texas",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "texas_license"
+    },
+    "lvn_license_texas": {
+      "name": "Licensed Vocational Nurse (LVN) License - Texas",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "texas_license"
+    },
+    "chw_certification": {
+      "name": "Texas Community Health Worker (CHW) Certification",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "texas_license"
+    },
+    "registered_sanitarian_license": {
+      "name": "Registered Sanitarian (RS) / REHS License - Texas",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "texas_license"
+    },
+    "pesticide_applicator_license": {
+      "name": "Commercial Pesticide Applicator License (Vector Control)",
+      "validity_days": 730,
+      "grace_period_days": 0,
+      "template": "texas_license"
+    },
+    "fema_ics_nims": {
+      "name": "FEMA ICS / NIMS Training (ICS-100/200/700/800)",
+      "validity_days": null,
+      "grace_period_days": 0,
+      "template": "osha_certificate"
+    },
+    "hazcom_training": {
+      "name": "Hazard Communication (HazCom) Training",
+      "validity_days": 365,
+      "grace_period_days": 0,
+      "template": "osha_certificate"
+    },
+    "respiratory_protection_n95": {
+      "name": "Respiratory Protection & N95 Fit Testing",
+      "validity_days": 365,
+      "grace_period_days": 0,
+      "template": "lms_certificate"
+    },
+    "wic_civil_rights_training": {
+      "name": "WIC Civil Rights Training (USDA)",
+      "validity_days": 365,
+      "grace_period_days": 0,
+      "template": "lms_certificate"
+    },
+    "vfc_program_training": {
+      "name": "Vaccines for Children (VFC) Program Training",
+      "validity_days": 365,
+      "grace_period_days": 0,
+      "template": "lms_certificate"
+    }
+  }
+}

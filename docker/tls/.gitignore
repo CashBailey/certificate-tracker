@@ -1,0 +1,5 @@
+# Generated TLS certificates and keys — do NOT commit to version control
+ca.key
+ca.crt
+certs/
+*.srl

@@ -1,0 +1,188 @@
+/**
+ * Global Styles
+ * City of Laredo Certificate Management System
+ */
+
+@import './styles/tokens.css';
+
+/* Reset and Base Styles */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-normal);
+  color: var(--ink-secondary);
+  background-color: var(--bg-page);
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--ink-primary);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+h1 {
+  font-size: var(--font-h1);
+}
+
+h2 {
+  font-size: var(--font-h2);
+}
+
+h3 {
+  font-size: var(--font-h3);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: var(--info-dark);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--gradient-start);
+}
+
+/* Focus Styles */
+:focus-visible {
+  outline: 2px solid var(--info);
+  outline-offset: 2px;
+}
+
+/* Form Elements Base */
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  background: var(--bg-surface);
+  color: var(--ink-primary);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Loading State */
+.loading-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-page);
+}
+
+.loading-spinner {
+  color: var(--ink-primary);
+  font-size: var(--font-h2);
+}
+
+/* Error Message */
+.error-message {
+  background: var(--error-light);
+  color: var(--error);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-input);
+  font-size: var(--font-small);
+  border: 1px solid var(--error);
+  margin-bottom: var(--space-4);
+}
+
+/* Success Message */
+.success-message {
+  background: var(--success-light);
+  color: var(--success-dark);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-input);
+  font-size: var(--font-small);
+  border: 1px solid var(--success);
+  margin-bottom: var(--space-4);
+}
+
+/* Empty State */
+.empty-state {
+  background: var(--bg-surface);
+  padding: var(--space-12);
+  border-radius: var(--radius-card);
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-state h2 {
+  margin-bottom: var(--space-2);
+}
+
+.empty-state p {
+  color: var(--ink-muted);
+}
+
+/* Text Utilities */
+.text-muted {
+  color: var(--ink-muted);
+  font-size: var(--font-small);
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-page);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
+}
+
+/* Selection */
+::selection {
+  background: var(--info-light);
+  color: var(--info-dark);
+}

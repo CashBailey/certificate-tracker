@@ -1,0 +1,15 @@
+{
+  "id": "cert_003_lowdpi_150",
+  "distortions": [
+    "lowdpi_150"
+  ],
+  "accuracy_threshold": 0.65,
+  "expected_fields": {
+    "certificate_holder_name": "Robert James Smith",
+    "certificate_type": "HIPAA Compliance Training",
+    "issue_date": "2024-03-10",
+    "expiration_date": "2025-03-10",
+    "issuing_authority": "City of Laredo Health Department",
+    "certificate_number": "CLH-2024-345678"
+  }
+}

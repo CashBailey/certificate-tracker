@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# RH_MANAGED_HOOK: repo-hygiene-autopilot v1
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel 2>/dev/null || true)
+[ -n "$repo_root" ] || exit 0
+
+rh="$repo_root/.repo-hygiene/rh"
+[ -x "$rh" ] || exit 0
+
+"$rh" precommit

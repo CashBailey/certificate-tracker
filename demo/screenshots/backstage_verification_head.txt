@@ -1,0 +1,20 @@
+FOUND: <repo-root>/verification/results/project-verification-2026-04-22T18-50-44Z.md
+# Project Verification
+
+- Run at: 2026-04-22T18-50-44Z
+- Working tree: <repo-root>
+
+| Step | Status | Command | Log |
+| --- | --- | --- | --- |
+| Frontend Build | PASS | `docker compose exec -T frontend sh -lc 'cd /app && npm run build'` | `<repo-root>/verification/results/2026-04-22T18-50-44Z-frontend-build.log` |
+| API Pytest | PASS | `docker compose exec -T api pytest -q` | `<repo-root>/verification/results/2026-04-22T18-50-44Z-api-pytest.log` |
+| Runtime Auth/Mail Checks | PASS | `bash scripts/run_runtime_auth_checks.sh` | `<repo-root>/verification/results/2026-04-22T18-50-44Z-runtime-auth.log` |
+| HTTPS Gate | PASS | `make validate-https` | `<repo-root>/verification/results/2026-04-22T18-50-44Z-https-gate.log` |
+| Worker Queue Tests | PASS | `make test-worker-queues-docker` | `<repo-root>/verification/results/2026-04-22T18-50-44Z-worker-queues.log` |
+| Browser Audit | FAIL | `npm --prefix e2e run audit` | `<repo-root>/verification/results/2026-04-22T18-50-44Z-browser-audit.log` |
+
+## Overall
+
+- Status: FAIL
+- Browser audit artifacts: `e2e/results/browser-audit-strict-*.md`, `e2e/results/browser-audit-strict-*.json`
+- Note: browser-only automation is intentionally limited to the supported scope in `e2e/browser-audit-scope.mjs`. Project-wide replacements and manual-only residual checks are documented in `docs/PROJECT_VERIFICATION.md`.

@@ -1,0 +1,22 @@
+ARG WORKER_IMAGE=laredo-ocr-worker:test-runtime
+FROM ${WORKER_IMAGE}
+
+USER root
+
+COPY docker/workers/test-requirements.lock /tmp/test-requirements.lock
+RUN python -m pip install --no-cache-dir --no-deps -r /tmp/test-requirements.lock \
+    && rm -f /tmp/test-requirements.lock
+
+COPY --chown=appuser:appgroup CoreInstances/ApiServer/src/shared \
+    /repo/CoreInstances/ApiServer/src/shared
+COPY --chown=appuser:appgroup BackgroundProcessingInstances/OcrEngine/src \
+    /repo/BackgroundProcessingInstances/OcrEngine/src
+COPY --chown=appuser:appgroup BackgroundProcessingInstances/OcrEngine/tests/test_retry_queueing.py \
+    /repo/BackgroundProcessingInstances/OcrEngine/tests/test_retry_queueing.py
+COPY --chown=appuser:appgroup BackgroundProcessingInstances/OcrEngine/tests/test_queue_recovery_integration.py \
+    /repo/BackgroundProcessingInstances/OcrEngine/tests/test_queue_recovery_integration.py
+COPY --chown=appuser:appgroup scripts/check_ocr_test_deps.py \
+    /repo/scripts/check_ocr_test_deps.py
+
+USER appuser
+WORKDIR /repo

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "image": {
+    "path": "../LaredoPublicHealthDepartmentEmployeePoliciesAndProceduresAcknowlaegement.png",
+    "width": 1896,
+    "height": 2453
+  },
+  "shapes": [
+    {
+      "id": 1,
+      "name": "Signature",
+      "kind": "rect",
+      "bbox": [
+        386.582,
+        1456.075,
+        1101.082,
+        1647.11
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Date",
+      "kind": "rect",
+      "bbox": [
+        1204.872,
+        1454.571,
+        1631.466,
+        1646.358
+      ]
+    },
+    {
+      "id": 3,
+      "name": "EmployeeNamePrinted",
+      "kind": "rect",
+      "bbox": [
+        632.069,
+        1652.976,
+        1436.219,
+        1791.965
+      ]
+    },
+    {
+      "id": 4,
+      "name": "EmployeeID",
+      "kind": "rect",
+      "bbox": [
+        441.786,
+        1801.893,
+        941.485,
+        1940.882
+      ]
+    }
+  ]
+}

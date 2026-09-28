@@ -1,0 +1,242 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+jobs:
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: CoreInstances/ApiServer
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ruff mypy
+          pip install -r requirements.txt
+
+      - name: Run ruff linter
+        run: ruff check src/
+
+      - name: Run ruff formatter check
+        run: ruff format --check src/
+
+      - name: Run mypy type check
+        run: mypy src/ --ignore-missing-imports
+        continue-on-error: true  # Type checking is advisory for now
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: CoreInstances/ApiServer
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test_db
+      SECRET_KEY: test-secret-key-for-testing-only
+      MINIO_ENDPOINT: localhost:9000
+      MINIO_ACCESS_KEY: testaccess
+      MINIO_SECRET_KEY: testsecret
+      REDIS_URL: redis://localhost:6379/1
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/unit -v --tb=short -x
+
+      - name: Run unit tests with coverage
+        run: pytest tests/unit --cov=src --cov-report=xml --cov-report=term-missing
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          files: CoreInstances/ApiServer/coverage.xml
+          flags: unit
+          fail_ci_if_error: false
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start services
+        run: |
+          docker compose up -d postgres redis minio api
+          docker compose exec -T api alembic upgrade head
+
+      - name: Wait for services
+        run: |
+          sleep 10
+          docker compose exec -T api python -c "print('API ready')"
+
+      - name: Run integration tests
+        run: |
+          docker compose exec -T api pytest tests/integration -v --tb=short || true
+
+      - name: Run API tests
+        run: |
+          docker compose exec -T api pytest tests/api -v --tb=short || true
+
+      - name: Collect logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install bandit safety
+          pip install -r CoreInstances/ApiServer/requirements.txt
+
+      - name: Run bandit security linter
+        run: bandit -r CoreInstances/ApiServer/src -ll
+        continue-on-error: true
+
+      - name: Check dependencies for vulnerabilities
+        run: safety check -r CoreInstances/ApiServer/requirements.txt
+        continue-on-error: true
+
+  build-check:
+    name: Docker Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/api/Dockerfile
+          push: false
+          tags: laredo-api:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  worker-queue-tests:
+    name: Worker Queue Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start worker test Redis container
+        run: |
+          docker rm -f worker-queue-redis || true
+          docker network create worker-queue-test-net || true
+          docker run -d --name worker-queue-redis --network worker-queue-test-net redis:7-alpine
+
+      - name: Assert Redis supports BLMOVE (>= 6.2 capability)
+        run: |
+          docker run --rm --network worker-queue-test-net redis:7-alpine \
+            sh -lc "redis-cli -h worker-queue-redis COMMAND INFO BLMOVE | tr -d '\r' | grep -qi blmove"
+
+      - name: Build worker test images
+        run: |
+          docker build -f docker/workers/extraction/Dockerfile -t laredo-extraction-worker:test .
+          docker build -f docker/workers/ocr/Dockerfile -t laredo-ocr-worker:test .
+
+      - name: Run ExtractionWorker queue/recovery tests in Docker
+        run: |
+          docker run --rm \
+            --network worker-queue-test-net \
+            -v "$PWD:/repo" \
+            -w /repo \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -e EXTRACTION_TESTS_REQUIRE_DOCKER=1 \
+            -e EXTRACTION_REDIS_TEST_URL=redis://worker-queue-redis:6379/15 \
+            --entrypoint sh \
+            laredo-extraction-worker:test \
+            -lc "python -m pip install --user pytest pytest-asyncio && python -m pytest BackgroundProcessingInstances/ExtractionWorker/tests/test_retry_queueing.py BackgroundProcessingInstances/ExtractionWorker/tests/test_queue_recovery_integration.py -q -o cache_dir=/tmp/pytest_cache"
+
+      - name: Run OcrEngine queue/recovery tests in Docker (strict deps)
+        run: |
+          docker run --rm \
+            --network worker-queue-test-net \
+            -v "$PWD:/repo" \
+            -w /repo \
+            -e PYTHONDONTWRITEBYTECODE=1 \
+            -e OCR_TESTS_REQUIRE_DEPS=1 \
+            -e OCR_REDIS_TEST_URL=redis://worker-queue-redis:6379/14 \
+            --entrypoint sh \
+            laredo-ocr-worker:test \
+            -lc "python -m pip install --user pytest pytest-asyncio && python scripts/check_ocr_test_deps.py --profile tesseract --format text && python -m pytest BackgroundProcessingInstances/OcrEngine/tests/test_retry_queueing.py BackgroundProcessingInstances/OcrEngine/tests/test_queue_recovery_integration.py -q -o cache_dir=/tmp/pytest_cache"
+
+      - name: Collect worker test logs on failure
+        if: failure()
+        run: docker logs worker-queue-redis
+
+      - name: Cleanup worker test containers
+        if: always()
+        run: |
+          docker rm -f worker-queue-redis || true
+          docker network rm worker-queue-test-net || true

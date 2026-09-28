@@ -1,0 +1,17 @@
+# ==============================================================================
+# OCR Engine Worker - Python Dependencies
+# ==============================================================================
+
+# Redis task queue
+redis>=5.0.1
+
+# OCR
+pytesseract>=0.3.10
+Pillow>=12.2.0
+
+# EasyOCR/Torch are intentionally excluded from the bounded default image.
+# Sites that accept its unbounded per-call runtime may provide them in a custom
+# image and explicitly set OCR_ENABLE_EASYOCR=true.
+
+# Structured operational logging
+structlog>=24.1.0

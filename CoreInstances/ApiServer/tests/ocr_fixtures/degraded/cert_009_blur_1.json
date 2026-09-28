@@ -1,0 +1,15 @@
+{
+  "id": "cert_009_blur_1",
+  "distortions": [
+    "blur_1"
+  ],
+  "accuracy_threshold": 0.8,
+  "expected_fields": {
+    "certificate_holder_name": "Miguel Angel Rodriguez",
+    "certificate_type": "Infection Control Training",
+    "issue_date": "2024-09-14",
+    "expiration_date": "2025-09-14",
+    "issuing_authority": "CDC Training Division",
+    "certificate_number": "CDC-2024-001122"
+  }
+}

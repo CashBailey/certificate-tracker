@@ -1,0 +1,30 @@
+# RH_MANAGED_FILE: repo-hygiene-autopilot v1
+# Copy this file to .repo-hygiene/config/rh.conf and customize as needed.
+
+# Preferred remote used for default-branch and push guidance.
+# Leave empty to auto-detect (origin, then first remote).
+RH_PRIMARY_REMOTE=""
+
+# Optional hard override for default branch (e.g., main, master, trunk).
+# Leave empty to auto-detect.
+RH_DEFAULT_BRANCH=""
+
+# Use worktrees by default for `rh start`.
+# 1 = enabled, 0 = disabled.
+RH_USE_WORKTREES=1
+
+# Relative path from repo root for task worktrees.
+RH_WORKTREE_ROOT=".worktrees"
+
+# Maximum staged file size allowed by `rh precommit`.
+RH_MAX_STAGED_FILE_BYTES=5242880
+
+# Optional extra command for project-specific checks.
+# Example: RH_PRECOMMIT_CMD="make test"
+RH_PRECOMMIT_CMD=""
+
+# Space-delimited protected branch patterns skipped by cleanup.
+RH_PROTECTED_BRANCH_PATTERNS="main master develop release/* hotfix/*"
+
+# Warn in `rh recover` when untracked files exceed this count.
+RH_UNTRACKED_WARN_THRESHOLD=100

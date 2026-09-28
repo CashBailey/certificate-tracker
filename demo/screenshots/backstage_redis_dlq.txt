@@ -1,0 +1,13 @@
+=== Redis Dead-Letter Queues (mTLS via internal port 6380) ===
+
+--- extraction_tasks:dead_letter ---
+0
+
+
+--- ocr_tasks:dead_letter ---
+0
+
+
+--- live queues (should drain to 0) ---
+extraction_tasks LLEN: 0
+ocr_tasks       LLEN: 0

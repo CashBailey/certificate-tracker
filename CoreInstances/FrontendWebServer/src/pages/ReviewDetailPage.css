@@ -1,0 +1,213 @@
+/**
+ * Review Detail Page Styles
+ */
+
+.review-detail-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+}
+
+.review-detail-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.error-message--sticky {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 10;
+  margin: var(--space-4) var(--space-4) 0;
+}
+
+/* Split Layout */
+.review-layout-split {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 0;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Document Panel (Left) */
+.review-document-panel {
+  background: #1a1a2e;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  position: sticky;
+  top: var(--header-height);
+}
+
+.document-unavailable {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--font-small);
+}
+
+.document-unavailable {
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-input);
+  margin: var(--space-4);
+}
+
+/* Fields Panel (Right) */
+.review-fields-panel {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height));
+  overflow-y: auto;
+}
+
+/* Review Actions (below fields list) */
+.review-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+  padding-top: var(--space-6);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+/* Info Bar (compact horizontal) */
+.info-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--font-small);
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+}
+
+.info-bar__item {
+  padding-left: var(--space-3);
+  border-left: 1px solid var(--border);
+}
+
+/* Record Navigation (C3) */
+.record-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-4);
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border);
+  gap: var(--space-3);
+}
+
+.record-nav__position {
+  font-size: var(--font-small);
+  color: var(--ink-muted);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+/* Review Main */
+.review-main {
+  background: var(--bg-page);
+  padding: var(--space-4);
+  flex: 1;
+}
+
+.review-main h2 {
+  margin: 0 0 var(--space-1) 0;
+  font-size: var(--font-body);
+  font-weight: var(--font-weight-semibold, 600);
+}
+
+.fields-hint {
+  color: var(--ink-muted);
+  font-size: var(--font-caption);
+  margin: 0 0 var(--space-3) 0;
+}
+
+.fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Field Wrapper */
+.field-wrapper {
+  cursor: pointer;
+  border-radius: var(--radius-input);
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+  border-left: 3px solid transparent;
+}
+
+.field-wrapper:hover {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+}
+
+.field-wrapper--active {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+  transform: scale(1.01);
+  border-left-color: var(--info);
+}
+
+/* Modal */
+.reject-textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-input);
+  font-size: var(--font-small);
+  resize: vertical;
+  font-family: inherit;
+  min-height: 100px;
+}
+
+.reject-textarea:focus {
+  outline: none;
+  border-color: var(--info);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Responsive: Tablet and below */
+@media (max-width: 1200px) {
+  .review-layout-split {
+    grid-template-columns: 1fr;
+  }
+
+  .review-document-panel {
+    height: 50vh;
+    position: relative;
+    top: 0;
+  }
+
+  .review-fields-panel {
+    height: auto;
+    overflow-y: visible;
+  }
+
+}
+
+@media (max-width: 768px) {
+  .review-document-panel {
+    height: 40vh;
+    min-height: 300px;
+  }
+
+  .review-main {
+    padding: var(--space-3);
+  }
+}
+
+@media (max-width: 480px) {
+  .review-actions {
+    flex-direction: column;
+  }
+
+  .review-actions .btn {
+    width: 100%;
+  }
+}

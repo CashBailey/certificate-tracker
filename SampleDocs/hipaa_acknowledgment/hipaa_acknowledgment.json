@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "image": {
+    "path": "../HIPAA Acknowledgment.png",
+    "width": 1632,
+    "height": 2123
+  },
+  "shapes": [
+    {
+      "id": 1,
+      "name": "EmployeeNamePrinted",
+      "kind": "rect",
+      "bbox": [
+        540.0,
+        1344.0,
+        980.0,
+        1407.0
+      ]
+    },
+    {
+      "id": 2,
+      "name": "EmployeeSignature",
+      "kind": "rect",
+      "bbox": [
+        490.0,
+        1408.0,
+        930.0,
+        1478.0
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Date",
+      "kind": "rect",
+      "bbox": [
+        1104.0,
+        1341.0,
+        1436.0,
+        1446.0
+      ]
+    }
+  ]
+}

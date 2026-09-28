@@ -1,0 +1,12 @@
+{
+  "name": "city-of-laredo-browser-audit",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audit": "node run-browser-audit.mjs"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "playwright": "^1.59.1"
+  }
+}
